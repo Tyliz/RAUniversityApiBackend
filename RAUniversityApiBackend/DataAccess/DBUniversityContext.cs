@@ -9,5 +9,7 @@ namespace RAUniversityApiBackend.DataAccess
 
 		// TODO: Add DBSets (Table of our database)
 		public DbSet<User?> User { get; set; }
+
+		public DbSet<Course?> Course { get; set; }
     }
 }
