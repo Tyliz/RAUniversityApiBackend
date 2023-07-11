@@ -8,8 +8,14 @@ namespace RAUniversityApiBackend.DataAccess
         public DBUniversityContext(DbContextOptions<DBUniversityContext> options): base(options) { }
 
 		// TODO: Add DBSets (Table of our database)
-		public DbSet<User?> User { get; set; }
+		public DbSet<User>? Users { get; set; }
 
-		public DbSet<Course?> Course { get; set; }
-    }
+		public DbSet<Chapter>? Chapters { get; set; }
+
+		public DbSet<Course>? Courses { get; set; }
+
+		public DbSet<Category>? Categories { get; set; }
+
+		public DbSet<Student>? Students { get; set; }
+	}
 }
