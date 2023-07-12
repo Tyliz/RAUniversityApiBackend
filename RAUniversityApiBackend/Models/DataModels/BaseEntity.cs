@@ -1,28 +1,33 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RAUniversityApiBackend.Models.DataModels
 {
-	public class BaseEntity
+	public abstract class BaseEntity
 	{
 		[Required]
 		[Key]
+		[Column(Order = 0)]
 		public int Id { get; set; }
 
-		//public int IdUserCreatedBy { get; set; }
-		public string CreatedBy { get; set; } = string.Empty;
-
 		public DateTime CreatedAt { get; set; } = DateTime.Now;
-		
-		//public int IdUserUpdatedBy { get; set; }
-		public string UpdatedBy { get; set; } = string.Empty;
-		
+
 		public DateTime? UpdatedAt { get; set; }
+
+		public int IdUserCreatedBy { get; set; }
+		[ForeignKey(nameof(IdUserCreatedBy))]
+		public User? UserCreatedBy { get; set; }
 		
-		//public int IdUserDeletedBy { get; set; }
-		public string DeletedBy { get; set; } = string.Empty;
-		
+		public int? IdUserUpdatedBy { get; set; }
+		[ForeignKey(nameof(IdUserUpdatedBy))]
+		public User? UserUpdatedBy { get; set; }
+
+		public int? IdUserDeletedBy { get; set; }
+		[ForeignKey(nameof(IdUserDeletedBy))]
+		public User? UserDeletedBy { get; set; }
+
 		public DateTime? DeletedAt { get; set; }
-		
+
 		public bool IsDeleted { get; set; } = false;
 	}
 }

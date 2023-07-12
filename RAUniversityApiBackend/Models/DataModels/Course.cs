@@ -28,11 +28,10 @@ namespace RAUniversityApiBackend.Models.DataModels
         [Required]
         public CourseLevel Level { get; set; } = CourseLevel.Basic;
 
-        [Required]
-        public ICollection<Chapter> Chapters { get; set; } = new List<Chapter>();
+        public virtual ICollection<Chapter>? Chapters { get; set; } = new List<Chapter>();
 
-		public ICollection<Category> Categories { get; set; } = new List<Category>();
+		public virtual ICollection<Category> Categories { get; set; } = new List<Category>();
 
-        public ICollection<Student> Students { get; set; } = new List<Student>();
+        public ICollection<Student>? Students { get; set; } = new List<Student>();
 	}
 }

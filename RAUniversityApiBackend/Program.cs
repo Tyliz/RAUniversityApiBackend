@@ -13,7 +13,8 @@ var connectionString = builder.Configuration.GetConnectionString(CONNECTION_NAME
 
 // 3. Add Context
 builder.Services.AddDbContext<DBUniversityContext>(
-	options => options.UseSqlServer(connectionString)
+	options => options
+		.UseSqlServer(connectionString)
 );
 
 // Add services to the container.

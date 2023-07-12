@@ -7,55 +7,55 @@ namespace RAUniversityApiBackend.Controllers
 {
 	[Route("api/[controller]")]
     [ApiController]
-    public class ChaptersController : ControllerBase
+    public class CategoriesController : ControllerBase
     {
         private readonly DBUniversityContext _context;
 
-        public ChaptersController(DBUniversityContext context)
+        public CategoriesController(DBUniversityContext context)
         {
             _context = context;
         }
 
-        // GET: api/Chapters
+        // GET: api/Categories
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Chapter>>> GetChapters()
+        public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
         {
-          if (_context.Chapters == null)
+          if (_context.Categories == null)
           {
               return NotFound();
           }
-            return await _context.Chapters.ToListAsync();
+            return await _context.Categories.ToListAsync();
         }
 
-        // GET: api/Chapters/5
+        // GET: api/Categories/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Chapter>> GetChapter(int id)
+        public async Task<ActionResult<Category>> GetCategory(int id)
         {
-          if (_context.Chapters == null)
+          if (_context.Categories == null)
           {
               return NotFound();
           }
-            var chapter = await _context.Chapters.FindAsync(id);
+            var category = await _context.Categories.FindAsync(id);
 
-            if (chapter == null)
+            if (category == null)
             {
                 return NotFound();
             }
 
-            return chapter;
+            return category;
         }
 
-        // PUT: api/Chapters/5
+        // PUT: api/Categories/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutChapter(int id, Chapter chapter)
+        public async Task<IActionResult> PutCategory(int id, Category category)
         {
-            if (id != chapter.Id)
+            if (id != category.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(chapter).State = EntityState.Modified;
+            _context.Entry(category).State = EntityState.Modified;
 
             try
             {
@@ -63,7 +63,7 @@ namespace RAUniversityApiBackend.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ChapterExists(id))
+                if (!CategoryExists(id))
                 {
                     return NotFound();
                 }
@@ -76,44 +76,44 @@ namespace RAUniversityApiBackend.Controllers
             return NoContent();
         }
 
-        // POST: api/Chapters
+        // POST: api/Categories
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Chapter>> PostChapter(Chapter chapter)
+        public async Task<ActionResult<Category>> PostCategory(Category category)
         {
-          if (_context.Chapters == null)
+          if (_context.Categories == null)
           {
-              return Problem("Entity set 'DBUniversityContext.Chapters'  is null.");
+              return Problem("Entity set 'DBUniversityContext.Categories'  is null.");
           }
-            _context.Chapters.Add(chapter);
+            _context.Categories.Add(category);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetChapter", new { id = chapter.Id }, chapter);
+            return CreatedAtAction("GetCategory", new { id = category.Id }, category);
         }
 
-        // DELETE: api/Chapters/5
+        // DELETE: api/Categories/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteChapter(int id)
+        public async Task<IActionResult> DeleteCategory(int id)
         {
-            if (_context.Chapters == null)
+            if (_context.Categories == null)
             {
                 return NotFound();
             }
-            var chapter = await _context.Chapters.FindAsync(id);
-            if (chapter == null)
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null)
             {
                 return NotFound();
             }
 
-            _context.Chapters.Remove(chapter);
+            _context.Categories.Remove(category);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool ChapterExists(int id)
+        private bool CategoryExists(int id)
         {
-            return (_context.Chapters?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.Categories?.Any(e => e.Id == id)).GetValueOrDefault();
         }
     }
 }

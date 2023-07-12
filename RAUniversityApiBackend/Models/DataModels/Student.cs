@@ -13,7 +13,6 @@ namespace RAUniversityApiBackend.Models.DataModels
 		[Required]
 		public DateTime DateOfBird { get; set; }
 
-		[Required]
-		public ICollection<Course> Courses { get; set; } = new List<Course>();
+		public ICollection<Course>? Courses { get; set; } = new List<Course>();
 	}
 }

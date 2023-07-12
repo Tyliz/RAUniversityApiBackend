@@ -1,13 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RAUniversityApiBackend.Models.DataModels
 {
 	public class Chapter : BaseEntity
 	{
-		public int IdCourse { get; set; }
-		public virtual Course Course { get; set; } = new Course();
-
 		[Required]
+		[Column(Order = 1)]
 		public string Themes { get; set; } = string.Empty;
+
+		[Column(Order = 2)]
+		public int IdCourse { get; set; }
+		public Course? Course { get; set; } = new Course();
 	}
 }

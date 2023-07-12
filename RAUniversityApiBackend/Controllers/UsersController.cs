@@ -23,7 +23,7 @@ namespace RAUniversityApiBackend.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUser()
+        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
           if (_context.Users == null)
           {
@@ -88,7 +88,7 @@ namespace RAUniversityApiBackend.Controllers
         {
           if (_context.Users == null)
           {
-              return Problem("Entity set 'DBUniversityContext.User'  is null.");
+              return Problem("Entity set 'DBUniversityContext.Users'  is null.");
           }
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
