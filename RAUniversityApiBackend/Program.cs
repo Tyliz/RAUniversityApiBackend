@@ -2,6 +2,7 @@
 // 1. Using para trabajar con entity framework
 using Microsoft.EntityFrameworkCore;
 using RAUniversityApiBackend.DataAccess;
+using RAUniversityApiBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,21 @@ builder.Services.AddDbContext<DBUniversityContext>(
 // Add services to the container.
 
 builder.Services.AddControllers();
+
+// 4. Add Custom Services (Folder Services)
+builder.Services.AddScoped<IStudentsService, StudentsService>();
+// TODO: Add all services
+
+// 5. CORDS Configuration
+builder.Services.AddCors(options => {
+	options.AddPolicy(name: "CordsPolicy", builder =>
+	{
+		builder.AllowAnyOrigin();
+		builder.AllowAnyMethod();
+		builder.AllowAnyHeader();
+	});
+});
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -38,5 +54,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// 6. Tell app to use cords
+app.UseCors("CordsPolicy");
 
 app.Run();

@@ -4,7 +4,7 @@ using RAUniversityApiBackend.Models.DataModels;
 
 namespace RAUniversityApiBackend.Services
 {
-	public class StudentService
+	public class StudentsService : IStudentsService
 	{
 		#region Properties
 
@@ -14,7 +14,7 @@ namespace RAUniversityApiBackend.Services
 
 		#region Constructors
 
-		public StudentService(DBUniversityContext context)
+		public StudentsService(DBUniversityContext context)
 		{
 			_context = context;
 		}
@@ -23,13 +23,13 @@ namespace RAUniversityApiBackend.Services
 
 		#region Public Methods
 
-		public async Task<List<Student>> GetOldersThan18()
+		public IEnumerable<Student> GetOldersThan18()
 		{
-			List<Student> students = new();
+			IEnumerable<Student> students = new List<Student>();
 
 			if (_context.Students != null)
 			{
-				students = await _context.Students.ToListAsync();
+				students = _context.Students.ToList();
 
 				students = students
 					.Select(student => student)
@@ -40,7 +40,7 @@ namespace RAUniversityApiBackend.Services
 			return students;
 		}
 
-		public async Task<List<Student>> GetStudenWithAtLeastOneCourse()
+		public async Task<IEnumerable<Student>> GetStudenWithAtLeastOneCourse()
 		{
 			List<Student> students = new();
 
@@ -55,6 +55,17 @@ namespace RAUniversityApiBackend.Services
 			}
 
 			return students;
+		}
+
+		// TODO: resolve method GetStudents
+		public IEnumerable<Student> GetStudents()
+		{
+			throw new NotImplementedException();
+		}
+
+		public IEnumerable<Student> GetStudentsWithNoCourses()
+		{
+			throw new NotImplementedException();
 		}
 
 		#endregion
