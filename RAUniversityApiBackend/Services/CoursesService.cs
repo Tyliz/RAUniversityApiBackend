@@ -225,7 +225,6 @@ namespace RAUniversityApiBackend.Services
 					.Select(course => course)
 					.Where(course =>
 						course.Level.Equals(courseLevel) &&
-						course.Categories != null &&
 						course.Categories.Any(category => category.Id == idCategory)
 					)
 					.ToListAsync();
