@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using RAUniversityApiBackend.Models.DataModels.Interfaces;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RAUniversityApiBackend.Models.DataModels
 {
-	public class Chapter : BaseEntity
+	public class Chapter : EntityUserManagement
 	{
 		[Required]
 		[Column(Order = 1)]

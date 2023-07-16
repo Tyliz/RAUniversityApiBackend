@@ -1,119 +1,104 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RAUniversityApiBackend.DataAccess;
+using RAUniversityApiBackend.Exceptions.Chapter;
 using RAUniversityApiBackend.Models.DataModels;
+using RAUniversityApiBackend.Services.Interfaces;
 
 namespace RAUniversityApiBackend.Controllers
 {
 	[Route("api/[controller]")]
-    [ApiController]
-    public class ChaptersController : ControllerBase
-    {
-        private readonly DBUniversityContext _context;
+	[ApiController]
+	public class ChaptersController : ControllerBase
+	{
+		private readonly IChaptersService _service;
 
-        public ChaptersController(DBUniversityContext context)
-        {
-            _context = context;
-        }
+		public ChaptersController(IChaptersService service)
+		{
+			_service = service;
+		}
 
-        // GET: api/Chapters
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Chapter>>> GetChapters()
-        {
-          if (_context.Chapters == null)
-          {
-              return NotFound();
-          }
-            return await _context.Chapters.ToListAsync();
-        }
+		// GET: api/Chapters
+		[HttpGet]
+		public async Task<ActionResult<IEnumerable<Chapter>>> GetChapters()
+		{
+			IEnumerable<Chapter> chapters = await _service.GetAll();
+			return Ok(chapters);
+		}
 
-        // GET: api/Chapters/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Chapter>> GetChapter(int id)
-        {
-          if (_context.Chapters == null)
-          {
-              return NotFound();
-          }
-            var chapter = await _context.Chapters.FindAsync(id);
+		// GET: api/Chapters/5
+		[HttpGet("{id}")]
+		public async Task<ActionResult<Chapter>> GetChapter(int id)
+		{
+			try
+			{
+				Chapter chapter = await _service.Get(id);
+				return chapter;
+			}
+			catch (ChapterNotExistException)
+			{
+				return NotFound();
+			}
+			catch (ChapterException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-            if (chapter == null)
-            {
-                return NotFound();
-            }
+		// PUT: api/Chapters/5
+		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+		[HttpPut("{id}")]
+		public async Task<IActionResult> PutChapter(int id, Chapter chapter)
+		{
+			if (id != chapter.Id) return BadRequest();
 
-            return chapter;
-        }
+			try
+			{
+				await _service.Update(chapter);
+				return NoContent();
+			}
+			catch (ChapterNotExistException)
+			{
+				return NotFound();
+			}
+			catch (ChapterException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-        // PUT: api/Chapters/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutChapter(int id, Chapter chapter)
-        {
-            if (id != chapter.Id)
-            {
-                return BadRequest();
-            }
+		// POST: api/Chapters
+		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+		[HttpPost]
+		public async Task<ActionResult<Chapter>> PostChapter(Chapter chapter)
+		{
+			try
+			{
+				Chapter newChapter = await _service.Create(chapter);
 
-            _context.Entry(chapter).State = EntityState.Modified;
+				return CreatedAtAction("GetChapter", new { id = newChapter.Id }, newChapter);
+			}
+			catch (ChapterException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ChapterExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Chapters
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Chapter>> PostChapter(Chapter chapter)
-        {
-          if (_context.Chapters == null)
-          {
-              return Problem("Entity set 'DBUniversityContext.Chapters'  is null.");
-          }
-            _context.Chapters.Add(chapter);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetChapter", new { id = chapter.Id }, chapter);
-        }
-
-        // DELETE: api/Chapters/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteChapter(int id)
-        {
-            if (_context.Chapters == null)
-            {
-                return NotFound();
-            }
-            var chapter = await _context.Chapters.FindAsync(id);
-            if (chapter == null)
-            {
-                return NotFound();
-            }
-
-            _context.Chapters.Remove(chapter);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool ChapterExists(int id)
-        {
-            return (_context.Chapters?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
-    }
+		// DELETE: api/Chapters/5
+		[HttpDelete("{id}")]
+		public async Task<IActionResult> DeleteChapter(int id)
+		{
+			try
+			{
+				await _service.Delete(id);
+				return NoContent();
+			}
+			catch (ChapterNotExistException)
+			{
+				return NotFound();
+			}
+			catch (ChapterException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
+	}
 }

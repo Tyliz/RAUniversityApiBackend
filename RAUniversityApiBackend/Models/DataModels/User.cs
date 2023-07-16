@@ -3,12 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RAUniversityApiBackend.Models.DataModels
 {
-	public class User
+	public class User : BaseEntity
 	{
-		[Required]
-		[Key]
-		[Column(Order = 0)]
-		public int Id { get; set; }
 
 		[Required, StringLength(50)]
 		[Column(Order = 1)]
@@ -38,17 +34,5 @@ namespace RAUniversityApiBackend.Models.DataModels
 
 		[Column(Order = 8)]
 		public int? IdUserDeletedBy { get; set; }
-
-		[Column(Order = 9)]
-		public DateTime CreatedAt { get; set; } = DateTime.Now;
-
-		[Column(Order = 10)]
-		public DateTime? UpdatedAt { get; set; }
-
-		[Column(Order = 11)]
-		public DateTime? DeletedAt { get; set; }
-
-		[Column(Order = 12)]
-		public bool IsDeleted { get; set; } = false;
 	}
 }

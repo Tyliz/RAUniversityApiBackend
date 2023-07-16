@@ -1,8 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using RAUniversityApiBackend.Models.DataModels.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace RAUniversityApiBackend.Models.DataModels
 {
-	public class Student : BaseEntity
+	public class Student : EntityUserManagement
 	{
 		[Required]
 		public string Name { get; set; } = string.Empty;

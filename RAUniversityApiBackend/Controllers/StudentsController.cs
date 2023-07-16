@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RAUniversityApiBackend.DataAccess;
+using RAUniversityApiBackend.Exceptions.Student;
 using RAUniversityApiBackend.Models.DataModels;
-using RAUniversityApiBackend.Services;
+using RAUniversityApiBackend.Services.Interfaces;
 
 namespace RAUniversityApiBackend.Controllers
 {
@@ -10,43 +9,38 @@ namespace RAUniversityApiBackend.Controllers
 	[ApiController]
 	public class StudentsController : ControllerBase
 	{
-		private readonly DBUniversityContext _context;
-		private readonly IStudentsService _studentsService;
+		private readonly IStudentsService _service;
 
-		public StudentsController(DBUniversityContext context, IStudentsService studentsService)
+		public StudentsController(IStudentsService studentsService)
 		{
-			_context = context;
-			_studentsService = studentsService;
-
+			_service = studentsService;
 		}
 
 		// GET: api/Students
 		[HttpGet]
 		public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
 		{
-			if (_context.Students == null)
-			{
-				return NotFound();
-			}
-			return await _context.Students.ToListAsync();
+			IEnumerable<Student> students = await _service.GetAll();
+			return Ok(students);
 		}
 
 		// GET: api/Students/5
 		[HttpGet("{id}")]
 		public async Task<ActionResult<Student>> GetStudent(int id)
 		{
-			if (_context.Students == null)
+			try
+			{
+				Student student = await _service.Get(id);
+				return student;
+			}
+			catch (StudentNotExistException)
 			{
 				return NotFound();
 			}
-			var student = await _context.Students.FindAsync(id);
-
-			if (student == null)
+			catch (StudentException ex)
 			{
-				return NotFound();
+				return NotFound(ex.Message);
 			}
-
-			return student;
 		}
 
 		// PUT: api/Students/5
@@ -54,30 +48,21 @@ namespace RAUniversityApiBackend.Controllers
 		[HttpPut("{id}")]
 		public async Task<IActionResult> PutStudent(int id, Student student)
 		{
-			if (id != student.Id)
-			{
-				return BadRequest();
-			}
-
-			_context.Entry(student).State = EntityState.Modified;
+			if (id != student.Id) return BadRequest();
 
 			try
 			{
-				await _context.SaveChangesAsync();
+				await _service.Update(student);
+				return NoContent();
 			}
-			catch (DbUpdateConcurrencyException)
+			catch (StudentNotExistException)
 			{
-				if (!StudentExists(id))
-				{
-					return NotFound();
-				}
-				else
-				{
-					throw;
-				}
+				return NotFound();
 			}
-
-			return NoContent();
+			catch (StudentException ex)
+			{
+				return NotFound(ex.Message);
+			}
 		}
 
 		// POST: api/Students
@@ -85,39 +70,35 @@ namespace RAUniversityApiBackend.Controllers
 		[HttpPost]
 		public async Task<ActionResult<Student>> PostStudent(Student student)
 		{
-			if (_context.Students == null)
+			try
 			{
-				return Problem("Entity set 'DBUniversityContext.Students'  is null.");
-			}
-			_context.Students.Add(student);
-			await _context.SaveChangesAsync();
+				Student newStudent = await _service.Create(student);
 
-			return CreatedAtAction("GetStudent", new { id = student.Id }, student);
+				return CreatedAtAction("GetStudent", new { id = newStudent.Id }, newStudent);
+			}
+			catch (StudentException ex)
+			{
+				return Problem(ex.Message);
+			}
 		}
 
 		// DELETE: api/Students/5
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> DeleteStudent(int id)
 		{
-			if (_context.Students == null)
+			try
 			{
-				return NotFound();
+				await _service.Delete(id);
+				return NoContent();
 			}
-			var student = await _context.Students.FindAsync(id);
-			if (student == null)
+			catch (StudentNotExistException ex)
 			{
-				return NotFound();
+				return NotFound(ex.Message);
 			}
-
-			_context.Students.Remove(student);
-			await _context.SaveChangesAsync();
-
-			return NoContent();
-		}
-
-		private bool StudentExists(int id)
-		{
-			return (_context.Students?.Any(e => e.Id == id)).GetValueOrDefault();
+			catch (StudentException ex)
+			{
+				return NotFound(ex.Message);
+			}
 		}
 	}
 }
