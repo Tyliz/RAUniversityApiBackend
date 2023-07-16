@@ -1,119 +1,123 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RAUniversityApiBackend.DataAccess;
+using RAUniversityApiBackend.Exceptions.Chapter;
 using RAUniversityApiBackend.Models.DataModels;
+using RAUniversityApiBackend.Services.Interfaces;
+using RAUniversityApiBackend.ViewModels.Chapter;
 
 namespace RAUniversityApiBackend.Controllers
 {
 	[Route("api/[controller]")]
-    [ApiController]
-    public class ChaptersController : ControllerBase
-    {
-        private readonly DBUniversityContext _context;
+	[ApiController]
+	public class ChaptersController : ControllerBase
+	{
+		private readonly IChaptersService _service;
 
-        public ChaptersController(DBUniversityContext context)
-        {
-            _context = context;
-        }
+		public ChaptersController(IChaptersService service)
+		{
+			_service = service;
+		}
 
-        // GET: api/Chapters
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Chapter>>> GetChapters()
-        {
-          if (_context.Chapters == null)
-          {
-              return NotFound();
-          }
-            return await _context.Chapters.ToListAsync();
-        }
+		// GET: api/Chapters
+		[HttpGet]
+		public async Task<ActionResult<IEnumerable<ChapterViewModel>>> GetChapters()
+		{
+			IEnumerable<Chapter> chapters = await _service.GetAll();
+			IEnumerable<ChapterViewModel> chaptersViewModel = chapters
+				.Select(chapter => ChapterViewModel.Create(chapter));
 
-        // GET: api/Chapters/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Chapter>> GetChapter(int id)
-        {
-          if (_context.Chapters == null)
-          {
-              return NotFound();
-          }
-            var chapter = await _context.Chapters.FindAsync(id);
+			return Ok(chaptersViewModel);
+		}
 
-            if (chapter == null)
-            {
-                return NotFound();
-            }
+		// GET: api/Chapters/Course/1
+		[HttpGet("Course/{idCourse}")]
+		public async Task<ActionResult<IEnumerable<ChapterViewModel>>> GetByCourse(int idCourse)
+		{
+			IEnumerable<Chapter> chapters = await _service.GetByCourse(idCourse);
+			IEnumerable<ChapterViewModel> chaptersViewModel = chapters
+				.Select(chapter => ChapterViewModel.Create(chapter));
 
-            return chapter;
-        }
+			return Ok(chaptersViewModel);
+		}
 
-        // PUT: api/Chapters/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutChapter(int id, Chapter chapter)
-        {
-            if (id != chapter.Id)
-            {
-                return BadRequest();
-            }
+		// GET: api/Chapters/5
+		[HttpGet("{id}")]
+		public async Task<ActionResult<ChapterViewModel>> GetChapter(int id)
+		{
+			try
+			{
+				Chapter chapter = await _service.Get(id);
+				return ChapterViewModel.Create(chapter);
+			}
+			catch (ChapterNotExistException)
+			{
+				return NotFound();
+			}
+			catch (ChapterException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-            _context.Entry(chapter).State = EntityState.Modified;
+		// PUT: api/Chapters/5
+		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+		[HttpPut("{id}")]
+		public async Task<IActionResult> PutChapter(int id, ChapterUpdateViewModel chapter)
+		{
+			if (id != chapter.Id) return BadRequest();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ChapterExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+			try
+			{
+				await _service.Update(Chapter.Create(chapter));
+				return NoContent();
+			}
+			catch (ChapterNotExistException)
+			{
+				return NotFound();
+			}
+			catch (ChapterException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-            return NoContent();
-        }
+		// POST: api/Chapters
+		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+		[HttpPost]
+		public async Task<ActionResult<ChapterViewModel>> PostChapter(ChapterCreateViewModel chapter)
+		{
+			try
+			{
+				Chapter newChapter = await _service.Create(Chapter.Create(chapter));
 
-        // POST: api/Chapters
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Chapter>> PostChapter(Chapter chapter)
-        {
-          if (_context.Chapters == null)
-          {
-              return Problem("Entity set 'DBUniversityContext.Chapters'  is null.");
-          }
-            _context.Chapters.Add(chapter);
-            await _context.SaveChangesAsync();
+				return CreatedAtAction(
+					"GetChapter",
+					new { id = newChapter.Id },
+					ChapterViewModel.Create(newChapter)
+				);
+			}
+			catch (ChapterException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-            return CreatedAtAction("GetChapter", new { id = chapter.Id }, chapter);
-        }
-
-        // DELETE: api/Chapters/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteChapter(int id)
-        {
-            if (_context.Chapters == null)
-            {
-                return NotFound();
-            }
-            var chapter = await _context.Chapters.FindAsync(id);
-            if (chapter == null)
-            {
-                return NotFound();
-            }
-
-            _context.Chapters.Remove(chapter);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool ChapterExists(int id)
-        {
-            return (_context.Chapters?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
-    }
+		// DELETE: api/Chapters/5
+		[HttpDelete("{id}")]
+		public async Task<IActionResult> DeleteChapter(int id)
+		{
+			try
+			{
+				await _service.Delete(id);
+				return NoContent();
+			}
+			catch (ChapterNotExistException)
+			{
+				return NotFound();
+			}
+			catch (ChapterException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
+	}
 }

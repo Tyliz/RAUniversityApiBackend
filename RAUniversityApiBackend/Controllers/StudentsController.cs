@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RAUniversityApiBackend.DataAccess;
+using RAUniversityApiBackend.Exceptions.Student;
 using RAUniversityApiBackend.Models.DataModels;
-using RAUniversityApiBackend.Services;
+using RAUniversityApiBackend.Services.Interfaces;
+using RAUniversityApiBackend.ViewModels.Student;
 
 namespace RAUniversityApiBackend.Controllers
 {
@@ -10,114 +10,125 @@ namespace RAUniversityApiBackend.Controllers
 	[ApiController]
 	public class StudentsController : ControllerBase
 	{
-		private readonly DBUniversityContext _context;
-		private readonly IStudentsService _studentsService;
+		private readonly IStudentsService _service;
 
-		public StudentsController(DBUniversityContext context, IStudentsService studentsService)
+		public StudentsController(IStudentsService studentsService)
 		{
-			_context = context;
-			_studentsService = studentsService;
-
+			_service = studentsService;
 		}
 
 		// GET: api/Students
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<Student>>> GetStudents()
+		public async Task<ActionResult<IEnumerable<StudentViewModel>>> GetStudents()
 		{
-			if (_context.Students == null)
-			{
-				return NotFound();
-			}
-			return await _context.Students.ToListAsync();
+			IEnumerable<Student> students = await _service.GetAll();
+			IEnumerable<StudentViewModel> studentViewModels = students
+				.Select(student => StudentViewModel.Create(student));
+
+			return Ok(studentViewModels);
+		}
+
+		// GET: api/Students/NoCourses
+		[HttpGet("NoCourses")]
+		public async Task<ActionResult<IEnumerable<StudentViewModel>>> GetStudentsWithNoCourses()
+		{
+			IEnumerable<Student> students = await _service.GetStudentsWithNoCourses();
+			IEnumerable<StudentViewModel> studentViewModels = students
+				.Select(student => StudentViewModel.Create(student));
+
+			return Ok(studentViewModels);
+		}
+
+		// GET: api/Students/NoCourses
+		[HttpGet("Course/{idCourse}")]
+		public async Task<ActionResult<IEnumerable<StudentViewModel>>> GetStudentsByCourse(int idCourse)
+		{
+			IEnumerable<Student> students = await _service.GetStudentsByCourse(idCourse);
+			IEnumerable<StudentViewModel> studentViewModels = students
+				.Select(student => StudentViewModel.Create(student));
+
+			return Ok(studentViewModels);
 		}
 
 		// GET: api/Students/5
 		[HttpGet("{id}")]
-		public async Task<ActionResult<Student>> GetStudent(int id)
+		public async Task<ActionResult<StudentViewModel>> GetStudent(int id)
 		{
-			if (_context.Students == null)
+			try
+			{
+				Student student = await _service.Get(id);
+				return StudentViewModel.Create(student);
+			}
+			catch (StudentNotExistException)
 			{
 				return NotFound();
 			}
-			var student = await _context.Students.FindAsync(id);
-
-			if (student == null)
+			catch (StudentException ex)
 			{
-				return NotFound();
+				return NotFound(ex.Message);
 			}
-
-			return student;
 		}
 
 		// PUT: api/Students/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
-		public async Task<IActionResult> PutStudent(int id, Student student)
+		public async Task<IActionResult> PutStudent(int id, StudentUpdateViewModel student)
 		{
-			if (id != student.Id)
-			{
-				return BadRequest();
-			}
-
-			_context.Entry(student).State = EntityState.Modified;
+			if (id != student.Id) return BadRequest();
 
 			try
 			{
-				await _context.SaveChangesAsync();
+				await _service.Update(Student.Create(student));
+				return NoContent();
 			}
-			catch (DbUpdateConcurrencyException)
+			catch (StudentNotExistException)
 			{
-				if (!StudentExists(id))
-				{
-					return NotFound();
-				}
-				else
-				{
-					throw;
-				}
+				return NotFound();
 			}
-
-			return NoContent();
+			catch (StudentException ex)
+			{
+				return NotFound(ex.Message);
+			}
 		}
 
 		// POST: api/Students
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
-		public async Task<ActionResult<Student>> PostStudent(Student student)
+		public async Task<ActionResult<StudentViewModel>> PostStudent(StudentCreateViewModel student)
 		{
-			if (_context.Students == null)
+			try
 			{
-				return Problem("Entity set 'DBUniversityContext.Students'  is null.");
-			}
-			_context.Students.Add(student);
-			await _context.SaveChangesAsync();
+				Student newStudent = await _service.Create(Student.Create(student));
 
-			return CreatedAtAction("GetStudent", new { id = student.Id }, student);
+				return CreatedAtAction(
+					"GetStudent",
+					new { id = newStudent.Id },
+					StudentViewModel.Create(newStudent)
+				);
+			}
+			catch (StudentException ex)
+			{
+				return Problem(ex.Message);
+			}
 		}
 
 		// DELETE: api/Students/5
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> DeleteStudent(int id)
 		{
-			if (_context.Students == null)
+			try
 			{
-				return NotFound();
+				await _service.Delete(id);
+				return NoContent();
 			}
-			var student = await _context.Students.FindAsync(id);
-			if (student == null)
+			catch (StudentNotExistException ex)
 			{
-				return NotFound();
+				return NotFound(ex.Message);
 			}
-
-			_context.Students.Remove(student);
-			await _context.SaveChangesAsync();
-
-			return NoContent();
-		}
-
-		private bool StudentExists(int id)
-		{
-			return (_context.Students?.Any(e => e.Id == id)).GetValueOrDefault();
+			catch (StudentException ex)
+			{
+				return NotFound(ex.Message);
+			}
 		}
 	}
 }

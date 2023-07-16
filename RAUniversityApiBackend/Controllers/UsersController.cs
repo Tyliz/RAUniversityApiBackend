@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RAUniversityApiBackend.DataAccess;
+﻿using Microsoft.AspNetCore.Mvc;
+using RAUniversityApiBackend.Exceptions.User;
 using RAUniversityApiBackend.Models.DataModels;
+using RAUniversityApiBackend.Services.Interfaces;
+using RAUniversityApiBackend.ViewModels.User;
 
 namespace RAUniversityApiBackend.Controllers
 {
@@ -14,111 +10,103 @@ namespace RAUniversityApiBackend.Controllers
 	[ApiController]
 	public class UsersController : ControllerBase
 	{
-		private readonly DBUniversityContext _context;
+		private readonly IUsersService _service;
 
-		public UsersController(DBUniversityContext context)
+		public UsersController(IUsersService service)
 		{
-			_context = context;
+			_service = service;
 		}
 
 		// GET: api/Users
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+		public async Task<ActionResult<IEnumerable<UserViewModel>>> GetUsers()
 		{
-			if (_context.Users == null)
-			{
-				return NotFound();
-			}
-			return await _context.Users.ToListAsync();
+			IEnumerable<User> users = await _service.GetAll();
+			IEnumerable<UserViewModel> usersViewModel = users
+				.Select(user => UserViewModel.Create(user));
+
+			return Ok(usersViewModel);
 		}
 
 		// GET: api/Users/5
 		[HttpGet("{id}")]
-		public async Task<ActionResult<User>> GetUser(int id)
+		public async Task<ActionResult<UserViewModel>> GetUser(int id)
 		{
-			if (_context.Users == null)
+			try
+			{
+				User user = await _service.Get(id);
+				return UserViewModel.Create(user);
+			}
+			catch (UserNotExistException)
 			{
 				return NotFound();
 			}
-			var user = await _context.Users.FindAsync(id);
-
-			if (user == null)
+			catch (UserException ex)
 			{
-				return NotFound();
+				return Problem(ex.Message);
 			}
-
-			return user;
 		}
 
 		// PUT: api/Users/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
-		public async Task<IActionResult> PutUser(int id, User user)
+		public async Task<IActionResult> PutUser(int id, UserUpdateViewModel user)
 		{
-			if (id != user.Id)
-			{
-				return BadRequest();
-			}
-
-			_context.Entry(user).State = EntityState.Modified;
+			if (id != user.Id) return BadRequest();
 
 			try
 			{
-				await _context.SaveChangesAsync();
+				await _service.Update(Models.DataModels.User.Create(user));
+				return NoContent();
 			}
-			catch (DbUpdateConcurrencyException)
+			catch (UserNotExistException)
 			{
-				if (!UserExists(id))
-				{
-					return NotFound();
-				}
-				else
-				{
-					throw;
-				}
+				return NotFound();
 			}
-
-			return NoContent();
+			catch (UserException ex)
+			{
+				return Problem(ex.Message);
+			}
 		}
 
 		// POST: api/Users
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
-		public async Task<ActionResult<User>> PostUser(User user)
+		public async Task<ActionResult<UserViewModel>> PostUser(UserCreateViewModel user)
 		{
-			if (_context.Users == null)
+			try
 			{
-				return Problem("Entity set 'DBUniversityContext.Users'  is null.");
-			}
-			_context.Users.Add(user);
-			await _context.SaveChangesAsync();
+				User newUser = await _service.Create(Models.DataModels.User.Create(user));
 
-			return CreatedAtAction("GetUser", new { id = user.Id }, user);
+				return CreatedAtAction(
+					"GetUser",
+					new { id = newUser.Id },
+					UserViewModel.Create(newUser)
+				);
+			}
+			catch (UserException ex)
+			{
+				return Problem(ex.Message);
+			}
 		}
 
 		// DELETE: api/Users/5
 		[HttpDelete("{id}")]
 		public async Task<IActionResult> DeleteUser(int id)
 		{
-			if (_context.Users == null)
+			try
+			{
+				await _service.Delete(id);
+				return NoContent();
+			}
+			catch (UserNotExistException)
 			{
 				return NotFound();
 			}
-			var user = await _context.Users.FindAsync(id);
-			if (user == null)
+			catch (UserException ex)
 			{
-				return NotFound();
+				return Problem(ex.Message);
 			}
-
-			_context.Users.Remove(user);
-			await _context.SaveChangesAsync();
-
-			return NoContent();
-		}
-
-		private bool UserExists(int id)
-		{
-			return (_context.Users?.Any(e => e.Id == id)).GetValueOrDefault();
 		}
 	}
 }

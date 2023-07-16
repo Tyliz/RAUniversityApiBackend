@@ -3,6 +3,7 @@
 using Microsoft.EntityFrameworkCore;
 using RAUniversityApiBackend.DataAccess;
 using RAUniversityApiBackend.Services;
+using RAUniversityApiBackend.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +24,11 @@ builder.Services.AddDbContext<DBUniversityContext>(
 builder.Services.AddControllers();
 
 // 4. Add Custom Services (Folder Services)
+builder.Services.AddScoped<ICategoriesService, CategoriesService>();
+builder.Services.AddScoped<IChaptersService, ChaptersService>();
+builder.Services.AddScoped<ICoursesService, CoursesService>();
 builder.Services.AddScoped<IStudentsService, StudentsService>();
+builder.Services.AddScoped<IUsersService, UsersService>();
 // TODO: Add all services
 
 // 5. CORDS Configuration

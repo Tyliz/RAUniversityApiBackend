@@ -1,15 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using RAUniversityApiBackend.ViewModels.User;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RAUniversityApiBackend.Models.DataModels
 {
-	public class User
+	public class User : BaseEntity
 	{
-		[Required]
-		[Key]
-		[Column(Order = 0)]
-		public int Id { get; set; }
-
 		[Required, StringLength(50)]
 		[Column(Order = 1)]
 		public string UserName { get; set; } = string.Empty;
@@ -39,16 +35,41 @@ namespace RAUniversityApiBackend.Models.DataModels
 		[Column(Order = 8)]
 		public int? IdUserDeletedBy { get; set; }
 
-		[Column(Order = 9)]
-		public DateTime CreatedAt { get; set; } = DateTime.Now;
 
-		[Column(Order = 10)]
-		public DateTime? UpdatedAt { get; set; }
+		public static User Create(UserViewModel model)
+		{
+			return new User()
+			{
+				Id = model.Id,
+				UserName = model.UserName,
+				Name = model.Name,
+				Surname = model.Surname,
+				Email = model.Email,
+			};
+		}
 
-		[Column(Order = 11)]
-		public DateTime? DeletedAt { get; set; }
+		public static User Create(UserCreateViewModel model)
+		{
+			return new User()
+			{
+				UserName = model.UserName,
+				Name = model.Name,
+				Surname = model.Surname,
+				Email = model.Email,
+				Password = model.Password,
+			};
+		}
 
-		[Column(Order = 12)]
-		public bool IsDeleted { get; set; } = false;
+		public static User Create(UserUpdateViewModel model)
+		{
+			return new User()
+			{
+				Id = model.Id,
+				UserName = model.UserName,
+				Name = model.Name,
+				Surname = model.Surname,
+				Email = model.Email,
+			};
+		}
 	}
 }

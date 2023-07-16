@@ -1,119 +1,156 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using RAUniversityApiBackend.DataAccess;
+using RAUniversityApiBackend.Exceptions.Course;
 using RAUniversityApiBackend.Models.DataModels;
+using RAUniversityApiBackend.Services.Interfaces;
+using RAUniversityApiBackend.ViewModels.Course;
 
 namespace RAUniversityApiBackend.Controllers
 {
 	[Route("api/[controller]")]
-    [ApiController]
-    public class CoursesController : ControllerBase
-    {
-        private readonly DBUniversityContext _context;
+	[ApiController]
+	public class CoursesController : ControllerBase
+	{
+		private readonly ICoursesService _service;
 
-        public CoursesController(DBUniversityContext context)
-        {
-            _context = context;
-        }
+		public CoursesController(ICoursesService coursesService)
+		{
+			_service = coursesService;
+		}
 
-        // GET: api/Courses
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Course>>> GetCourses()
-        {
-          if (_context.Courses == null)
-          {
-              return NotFound();
-          }
-            return await _context.Courses.ToListAsync();
-        }
+		// GET: api/Courses
+		[HttpGet]
+		public async Task<ActionResult<IEnumerable<CourseViewModel>>> GetCourses()
+		{
+			IEnumerable<Course> courses = await _service.GetAll();
+			IEnumerable<CourseViewModel> coursesViewModel = courses
+				.Select(course => CourseViewModel.Create(course));
 
-        // GET: api/Courses/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Course>> GetCourse(int id)
-        {
-          if (_context.Courses == null)
-          {
-              return NotFound();
-          }
-            var course = await _context.Courses.FindAsync(id);
+			return Ok(coursesViewModel);
+		}
 
-            if (course == null)
-            {
-                return NotFound();
-            }
+		// GET: api/Courses/Category/1
+		[HttpGet("Category/{idCategoria}")]
+		public async Task<ActionResult<IEnumerable<CourseViewModel>>> GetByCategory(int idCategoria)
+		{
+			IEnumerable<Course> courses = await _service.GetByCategory(idCategoria);
+			IEnumerable<CourseViewModel> coursesViewModel = courses
+				.Select(course => CourseViewModel.Create(course));
 
-            return course;
-        }
+			return Ok(coursesViewModel);
+		}
 
-        // PUT: api/Courses/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCourse(int id, Course course)
-        {
-            if (id != course.Id)
-            {
-                return BadRequest();
-            }
+		// GET: api/Courses/Student/1
+		[HttpGet("Student/{idStudent}")]
+		public async Task<ActionResult<IEnumerable<CourseViewModel>>> GetByStudent(int idStudent)
+		{
+			IEnumerable<Course> courses = await _service.GetByStudent(idStudent);
+			IEnumerable<CourseViewModel> coursesViewModel = courses
+				.Select(course => CourseViewModel.Create(course));
 
-            _context.Entry(course).State = EntityState.Modified;
+			return Ok(coursesViewModel);
+		}
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CourseExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+		// GET: api/Courses/5
+		[HttpGet("{id}")]
+		public async Task<ActionResult<CourseViewModel>> GetCourse(int id)
+		{
+			try
+			{
+				Course course = await _service.Get(id);
+				return CourseViewModel.Create(course);
+			}
+			catch (CourseNotExistException)
+			{
+				return NotFound();
+			}
+			catch (CourseException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-            return NoContent();
-        }
+		// GET: api/Courses/NoThemes
+		[HttpGet("NoThemes")]
+		public async Task<ActionResult<CourseViewModel>> GetWithoutThemes()
+		{
+			try
+			{
+				IEnumerable<Course> courses = await _service.GetWithoutThemes();
+				IEnumerable<CourseViewModel> coursesViewModel = courses
+					.Select(course => CourseViewModel.Create(course));
 
-        // POST: api/Courses
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Course>> PostCourse(Course course)
-        {
-          if (_context.Courses == null)
-          {
-              return Problem("Entity set 'DBUniversityContext.Courses'  is null.");
-          }
-            _context.Courses.Add(course);
-            await _context.SaveChangesAsync();
+				return Ok(coursesViewModel);
+			}
+			catch (CourseNotExistException)
+			{
+				return NotFound();
+			}
+			catch (CourseException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-            return CreatedAtAction("GetCourse", new { id = course.Id }, course);
-        }
+		// PUT: api/Courses/5
+		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+		[HttpPut("{id}")]
+		public async Task<IActionResult> PutCourse(int id, CourseUpdateViewModel course)
+		{
+			if (id != course.Id) return BadRequest();
 
-        // DELETE: api/Courses/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCourse(int id)
-        {
-            if (_context.Courses == null)
-            {
-                return NotFound();
-            }
-            var course = await _context.Courses.FindAsync(id);
-            if (course == null)
-            {
-                return NotFound();
-            }
+			try
+			{
+				await _service.Update(Course.Create(course));
+				return NoContent();
+			}
+			catch (CourseNotExistException)
+			{
+				return NotFound();
+			}
+			catch (CourseException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-            _context.Courses.Remove(course);
-            await _context.SaveChangesAsync();
+		// POST: api/Courses
+		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+		[HttpPost]
+		public async Task<ActionResult<CourseViewModel>> PostCourse(CourseCreateViewModel course)
+		{
+			try
+			{
+				Course newCourse = await _service.Create(Course.Create(course));
+				return CreatedAtAction(
+					"GetCourse",
+					new { id = newCourse.Id },
+					CourseViewModel.Create(newCourse)
+				);
+			}
+			catch (CourseException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-            return NoContent();
-        }
-
-        private bool CourseExists(int id)
-        {
-            return (_context.Courses?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
-    }
+		// DELETE: api/Courses/5
+		[HttpDelete("{id}")]
+		public async Task<IActionResult> DeleteCourse(int id)
+		{
+			try
+			{
+				await _service.Delete(id);
+				return NoContent();
+			}
+			catch (CourseNotExistException)
+			{
+				return NotFound();
+			}
+			catch (CourseException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
+	}
 }

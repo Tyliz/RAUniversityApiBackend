@@ -1,119 +1,114 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using RAUniversityApiBackend.DataAccess;
+using RAUniversityApiBackend.Exceptions.Category;
 using RAUniversityApiBackend.Models.DataModels;
+using RAUniversityApiBackend.Services.Interfaces;
+using RAUniversityApiBackend.ViewModels.Category;
+using System.ComponentModel;
 
 namespace RAUniversityApiBackend.Controllers
 {
 	[Route("api/[controller]")]
-    [ApiController]
-    public class CategoriesController : ControllerBase
-    {
-        private readonly DBUniversityContext _context;
+	[ApiController]
+	public class CategoriesController : ControllerBase
+	{
+		private readonly ICategoriesService _service;
 
-        public CategoriesController(DBUniversityContext context)
-        {
-            _context = context;
-        }
+		public CategoriesController(ICategoriesService service)
+		{
+			_service = service;
+		}
 
-        // GET: api/Categories
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
-        {
-          if (_context.Categories == null)
-          {
-              return NotFound();
-          }
-            return await _context.Categories.ToListAsync();
-        }
+		// GET: api/Categories
+		[HttpGet]
+		public async Task<ActionResult<IEnumerable<CategoryViewModel>>> GetCategories()
+		{
+			IEnumerable<Category> categories = await _service.GetAll();
+			IEnumerable<CategoryViewModel> categoriesResult = categories
+				.Select(category => CategoryViewModel.Create(category)); 
 
-        // GET: api/Categories/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Category>> GetCategory(int id)
-        {
-          if (_context.Categories == null)
-          {
-              return NotFound();
-          }
-            var category = await _context.Categories.FindAsync(id);
+			return Ok(categoriesResult);
+		}
 
-            if (category == null)
-            {
-                return NotFound();
-            }
+		// GET: api/Categories/5
+		[HttpGet("{id}")]
+		public async Task<ActionResult<CategoryViewModel>> GetCategory(int id)
+		{
+			try
+			{
+				Category category = await _service.Get(id);
 
-            return category;
-        }
+				return CategoryViewModel.Create(category);
+			}
+			catch (CategoryNotExistException)
+			{
+				return NotFound();
+			}
+			catch (CategoryException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-        // PUT: api/Categories/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(int id, Category category)
-        {
-            if (id != category.Id)
-            {
-                return BadRequest();
-            }
+		// PUT: api/Categories/5
+		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+		[HttpPut("{id}")]
+		public async Task<IActionResult> PutCategory(int id, CategoryUpdateViewModel category)
+		{
+			if (id != category.Id) return BadRequest();
 
-            _context.Entry(category).State = EntityState.Modified;
+			try
+			{
+				await _service.Update(Category.Create(category));
+				return NoContent();
+			}
+			catch (CategoryNotExistException)
+			{
+				return NotFound();
+			}
+			catch (CategoryException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CategoryExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+		// POST: api/Categories
+		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+		[HttpPost]
+		public async Task<ActionResult<CategoryViewModel>> PostCategory(CategoryCreateViewModel category)
+		{
+			try
+			{
+				Category newCategory = await _service.Create(Category.Create(category));
 
-            return NoContent();
-        }
+				return CreatedAtAction(
+					"GetCategory", 
+					new { id = newCategory.Id },
+					CategoryViewModel.Create(newCategory)
+				);
+			}
+			catch (CategoryException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
 
-        // POST: api/Categories
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<Category>> PostCategory(Category category)
-        {
-          if (_context.Categories == null)
-          {
-              return Problem("Entity set 'DBUniversityContext.Categories'  is null.");
-          }
-            _context.Categories.Add(category);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetCategory", new { id = category.Id }, category);
-        }
-
-        // DELETE: api/Categories/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCategory(int id)
-        {
-            if (_context.Categories == null)
-            {
-                return NotFound();
-            }
-            var category = await _context.Categories.FindAsync(id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            _context.Categories.Remove(category);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        private bool CategoryExists(int id)
-        {
-            return (_context.Categories?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
-    }
+		// DELETE: api/Categories/5
+		[HttpDelete("{id}")]
+		public async Task<IActionResult> DeleteCategory(int id)
+		{
+			try
+			{
+				await _service.Delete(id);
+				return NoContent();
+			}
+			catch (CategoryNotExistException)
+			{
+				return NotFound();
+			}
+			catch (CategoryException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
+	}
 }
