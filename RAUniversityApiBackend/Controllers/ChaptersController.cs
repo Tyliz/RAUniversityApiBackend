@@ -2,6 +2,7 @@
 using RAUniversityApiBackend.Exceptions.Chapter;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
+using RAUniversityApiBackend.ViewModels.Chapter;
 
 namespace RAUniversityApiBackend.Controllers
 {
@@ -18,20 +19,34 @@ namespace RAUniversityApiBackend.Controllers
 
 		// GET: api/Chapters
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<Chapter>>> GetChapters()
+		public async Task<ActionResult<IEnumerable<ChapterViewModel>>> GetChapters()
 		{
 			IEnumerable<Chapter> chapters = await _service.GetAll();
-			return Ok(chapters);
+			IEnumerable<ChapterViewModel> chaptersViewModel = chapters
+				.Select(chapter => ChapterViewModel.Create(chapter));
+
+			return Ok(chaptersViewModel);
+		}
+
+		// GET: api/Chapters/Course/1
+		[HttpGet("Course/{idCourse}")]
+		public async Task<ActionResult<IEnumerable<ChapterViewModel>>> GetByCourse(int idCourse)
+		{
+			IEnumerable<Chapter> chapters = await _service.GetByCourse(idCourse);
+			IEnumerable<ChapterViewModel> chaptersViewModel = chapters
+				.Select(chapter => ChapterViewModel.Create(chapter));
+
+			return Ok(chaptersViewModel);
 		}
 
 		// GET: api/Chapters/5
 		[HttpGet("{id}")]
-		public async Task<ActionResult<Chapter>> GetChapter(int id)
+		public async Task<ActionResult<ChapterViewModel>> GetChapter(int id)
 		{
 			try
 			{
 				Chapter chapter = await _service.Get(id);
-				return chapter;
+				return ChapterViewModel.Create(chapter);
 			}
 			catch (ChapterNotExistException)
 			{
@@ -46,13 +61,13 @@ namespace RAUniversityApiBackend.Controllers
 		// PUT: api/Chapters/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
-		public async Task<IActionResult> PutChapter(int id, Chapter chapter)
+		public async Task<IActionResult> PutChapter(int id, ChapterUpdateViewModel chapter)
 		{
 			if (id != chapter.Id) return BadRequest();
 
 			try
 			{
-				await _service.Update(chapter);
+				await _service.Update(Chapter.Create(chapter));
 				return NoContent();
 			}
 			catch (ChapterNotExistException)
@@ -68,13 +83,17 @@ namespace RAUniversityApiBackend.Controllers
 		// POST: api/Chapters
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
-		public async Task<ActionResult<Chapter>> PostChapter(Chapter chapter)
+		public async Task<ActionResult<ChapterViewModel>> PostChapter(ChapterCreateViewModel chapter)
 		{
 			try
 			{
-				Chapter newChapter = await _service.Create(chapter);
+				Chapter newChapter = await _service.Create(Chapter.Create(chapter));
 
-				return CreatedAtAction("GetChapter", new { id = newChapter.Id }, newChapter);
+				return CreatedAtAction(
+					"GetChapter",
+					new { id = newChapter.Id },
+					ChapterViewModel.Create(newChapter)
+				);
 			}
 			catch (ChapterException ex)
 			{

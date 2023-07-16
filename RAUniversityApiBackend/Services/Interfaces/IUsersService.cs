@@ -4,6 +4,6 @@ namespace RAUniversityApiBackend.Services.Interfaces
 {
 	public interface IUsersService : IBaseService<User>
 	{
-		public Task<List<User>> SearchByEmail(string email);
+		public Task<IEnumerable<User>> SearchByEmail(string email);
 	}
 }

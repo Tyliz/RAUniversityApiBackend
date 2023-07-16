@@ -2,6 +2,7 @@
 using RAUniversityApiBackend.Exceptions.User;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
+using RAUniversityApiBackend.ViewModels.User;
 
 namespace RAUniversityApiBackend.Controllers
 {
@@ -18,20 +19,23 @@ namespace RAUniversityApiBackend.Controllers
 
 		// GET: api/Users
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+		public async Task<ActionResult<IEnumerable<UserViewModel>>> GetUsers()
 		{
 			IEnumerable<User> users = await _service.GetAll();
-			return Ok(users);
+			IEnumerable<UserViewModel> usersViewModel = users
+				.Select(user => UserViewModel.Create(user));
+
+			return Ok(usersViewModel);
 		}
 
 		// GET: api/Users/5
 		[HttpGet("{id}")]
-		public async Task<ActionResult<User>> GetUser(int id)
+		public async Task<ActionResult<UserViewModel>> GetUser(int id)
 		{
 			try
 			{
 				User user = await _service.Get(id);
-				return user;
+				return UserViewModel.Create(user);
 			}
 			catch (UserNotExistException)
 			{
@@ -46,13 +50,13 @@ namespace RAUniversityApiBackend.Controllers
 		// PUT: api/Users/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
-		public async Task<IActionResult> PutUser(int id, User user)
+		public async Task<IActionResult> PutUser(int id, UserUpdateViewModel user)
 		{
 			if (id != user.Id) return BadRequest();
 
 			try
 			{
-				await _service.Update(user);
+				await _service.Update(Models.DataModels.User.Create(user));
 				return NoContent();
 			}
 			catch (UserNotExistException)
@@ -68,13 +72,17 @@ namespace RAUniversityApiBackend.Controllers
 		// POST: api/Users
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
-		public async Task<ActionResult<User>> PostUser(User user)
+		public async Task<ActionResult<UserViewModel>> PostUser(UserCreateViewModel user)
 		{
 			try
 			{
-				User newUser = await _service.Create(user);
+				User newUser = await _service.Create(Models.DataModels.User.Create(user));
 
-				return CreatedAtAction("GetUser", new { id = newUser.Id }, newUser);
+				return CreatedAtAction(
+					"GetUser",
+					new { id = newUser.Id },
+					UserViewModel.Create(newUser)
+				);
 			}
 			catch (UserException ex)
 			{

@@ -20,28 +20,67 @@ namespace RAUniversityApiBackend.Controllers
 
 		// GET: api/Courses
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<Course>>> GetCourses()
+		public async Task<ActionResult<IEnumerable<CourseViewModel>>> GetCourses()
 		{
 			IEnumerable<Course> courses = await _service.GetAll();
-			return Ok(courses);
+			IEnumerable<CourseViewModel> coursesViewModel = courses
+				.Select(course => CourseViewModel.Create(course));
+
+			return Ok(coursesViewModel);
 		}
 
 		// GET: api/Courses/Category/1
 		[HttpGet("Category/{idCategoria}")]
-		public async Task<ActionResult<IEnumerable<Course>>> GetByCategory(int idCategoria)
+		public async Task<ActionResult<IEnumerable<CourseViewModel>>> GetByCategory(int idCategoria)
 		{
 			IEnumerable<Course> courses = await _service.GetByCategory(idCategoria);
-			return Ok(courses);
+			IEnumerable<CourseViewModel> coursesViewModel = courses
+				.Select(course => CourseViewModel.Create(course));
+
+			return Ok(coursesViewModel);
+		}
+
+		// GET: api/Courses/Student/1
+		[HttpGet("Student/{idStudent}")]
+		public async Task<ActionResult<IEnumerable<CourseViewModel>>> GetByStudent(int idStudent)
+		{
+			IEnumerable<Course> courses = await _service.GetByStudent(idStudent);
+			IEnumerable<CourseViewModel> coursesViewModel = courses
+				.Select(course => CourseViewModel.Create(course));
+
+			return Ok(coursesViewModel);
 		}
 
 		// GET: api/Courses/5
 		[HttpGet("{id}")]
-		public async Task<ActionResult<Course>> GetCourse(int id)
+		public async Task<ActionResult<CourseViewModel>> GetCourse(int id)
 		{
 			try
 			{
 				Course course = await _service.Get(id);
-				return course;
+				return CourseViewModel.Create(course);
+			}
+			catch (CourseNotExistException)
+			{
+				return NotFound();
+			}
+			catch (CourseException ex)
+			{
+				return Problem(ex.Message);
+			}
+		}
+
+		// GET: api/Courses/NoThemes
+		[HttpGet("NoThemes")]
+		public async Task<ActionResult<CourseViewModel>> GetWithoutThemes()
+		{
+			try
+			{
+				IEnumerable<Course> courses = await _service.GetWithoutThemes();
+				IEnumerable<CourseViewModel> coursesViewModel = courses
+					.Select(course => CourseViewModel.Create(course));
+
+				return Ok(coursesViewModel);
 			}
 			catch (CourseNotExistException)
 			{
@@ -56,13 +95,13 @@ namespace RAUniversityApiBackend.Controllers
 		// PUT: api/Courses/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
-		public async Task<IActionResult> PutCourse(int id, Course course)
+		public async Task<IActionResult> PutCourse(int id, CourseUpdateViewModel course)
 		{
 			if (id != course.Id) return BadRequest();
 
 			try
 			{
-				await _service.Update(course);
+				await _service.Update(Course.Create(course));
 				return NoContent();
 			}
 			catch (CourseNotExistException)
@@ -78,29 +117,16 @@ namespace RAUniversityApiBackend.Controllers
 		// POST: api/Courses
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
-		public async Task<ActionResult<Course>> PostCourse(CourseCreateViewModel courseCreateVM)
+		public async Task<ActionResult<CourseViewModel>> PostCourse(CourseCreateViewModel course)
 		{
 			try
 			{
-				Course newCourse = new()
-				{
-					Name = courseCreateVM.Name,
-					ShortDescription = courseCreateVM.ShortDescription,
-					LongDescription = courseCreateVM.LongDescription,
-					Requirements = courseCreateVM.Requirements,
-					Level = courseCreateVM.Level,
-				};
-				IEnumerable<int> categories = courseCreateVM.Categories;
-				foreach (int IdCategory in categories)
-				{
-					newCourse.Categories.Add(new() {
-						Id = IdCategory,
-					});
-				}
-
-				newCourse = await _service.Create(newCourse);
-
-				return CreatedAtAction("GetCourse", new { id = newCourse.Id }, newCourse);
+				Course newCourse = await _service.Create(Course.Create(course));
+				return CreatedAtAction(
+					"GetCourse",
+					new { id = newCourse.Id },
+					CourseViewModel.Create(newCourse)
+				);
 			}
 			catch (CourseException ex)
 			{

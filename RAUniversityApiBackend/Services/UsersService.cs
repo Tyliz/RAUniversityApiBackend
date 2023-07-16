@@ -43,7 +43,8 @@ namespace RAUniversityApiBackend.Services
 		{
 			if (_context.Users != null)
 			{
-				User? user = await _context.Users.FindAsync(id);
+				User? user = await _context.Users
+					.FirstOrDefaultAsync(user => !user.IsDeleted && user.Id == id);
 
 				if (user != null) return user;
 			}
@@ -59,6 +60,7 @@ namespace RAUniversityApiBackend.Services
 			{
 				originalUser.UpdatedAt = DateTime.Now;
 				originalUser.IdUserUpdatedBy = user.IdUserUpdatedBy; // TODO: Change that id for Sesion id User
+				originalUser.UserName = user.UserName;
 				originalUser.Name = user.Name;
 				originalUser.Surname = user.Surname;
 				originalUser.Email = user.Email;
@@ -126,18 +128,15 @@ namespace RAUniversityApiBackend.Services
 			await _context.SaveChangesAsync();
 		}
 
-		public async Task<List<User>> SearchByEmail(string email)
+		public async Task<IEnumerable<User>> SearchByEmail(string email)
 		{
-			List<User> users = new();
+			IEnumerable<User> users = new List<User>();
 
 			if (_context.Users != null)
 			{
-				users = await _context.Users.ToListAsync();
-
-				users = users
-					.Select(user => user)
-					.Where(x => x.Email == email)
-					.ToList();
+				users = await _context.Users
+					.Where(user => !user.IsDeleted && user.Email == email)
+					.ToListAsync();
 			}
 
 			return users;

@@ -3,6 +3,7 @@ using RAUniversityApiBackend.Exceptions.Category;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
 using RAUniversityApiBackend.ViewModels.Category;
+using System.ComponentModel;
 
 namespace RAUniversityApiBackend.Controllers
 {
@@ -23,18 +24,20 @@ namespace RAUniversityApiBackend.Controllers
 		{
 			IEnumerable<Category> categories = await _service.GetAll();
 			IEnumerable<CategoryViewModel> categoriesResult = categories
-				.Select(category => new CategoryViewModel() { Id = category.Id, Name = category.Name });
+				.Select(category => CategoryViewModel.Create(category)); 
+
 			return Ok(categoriesResult);
 		}
 
 		// GET: api/Categories/5
 		[HttpGet("{id}")]
-		public async Task<ActionResult<Category>> GetCategory(int id)
+		public async Task<ActionResult<CategoryViewModel>> GetCategory(int id)
 		{
 			try
 			{
 				Category category = await _service.Get(id);
-				return category;
+
+				return CategoryViewModel.Create(category);
 			}
 			catch (CategoryNotExistException)
 			{
@@ -49,13 +52,13 @@ namespace RAUniversityApiBackend.Controllers
 		// PUT: api/Categories/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
-		public async Task<IActionResult> PutCategory(int id, Category category)
+		public async Task<IActionResult> PutCategory(int id, CategoryUpdateViewModel category)
 		{
 			if (id != category.Id) return BadRequest();
 
 			try
 			{
-				await _service.Update(category);
+				await _service.Update(Category.Create(category));
 				return NoContent();
 			}
 			catch (CategoryNotExistException)
@@ -71,17 +74,17 @@ namespace RAUniversityApiBackend.Controllers
 		// POST: api/Categories
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
-		public async Task<ActionResult<Category>> PostCategory(CategoryCreateViewModel categoryCreateVW)
+		public async Task<ActionResult<CategoryViewModel>> PostCategory(CategoryCreateViewModel category)
 		{
 			try
 			{
-				Category newCategory = new()
-				{
-					Name = categoryCreateVW.Name,
-				};
-				newCategory = await _service.Create(newCategory);
+				Category newCategory = await _service.Create(Category.Create(category));
 
-				return CreatedAtAction("GetCategory", new { id = newCategory.Id }, newCategory);
+				return CreatedAtAction(
+					"GetCategory", 
+					new { id = newCategory.Id },
+					CategoryViewModel.Create(newCategory)
+				);
 			}
 			catch (CategoryException ex)
 			{

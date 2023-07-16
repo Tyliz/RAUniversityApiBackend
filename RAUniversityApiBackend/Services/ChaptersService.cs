@@ -39,11 +39,26 @@ namespace RAUniversityApiBackend.Services
 			return chapters;
 		}
 
+		public async Task<IEnumerable<Chapter>> GetByCourse(int IdCourse)
+		{
+			IEnumerable<Chapter> chapters = new List<Chapter>();
+
+			if (_context.Chapters != null)
+			{
+				chapters = await _context.Chapters
+					.Where(chapter => !chapter.IsDeleted && chapter.IdCourse == IdCourse)
+					.ToListAsync();
+			}
+
+			return chapters;
+		}
+
 		public async Task<Chapter> Get(int id)
 		{
 			if (_context.Chapters != null)
 			{
-				Chapter? chapter = await _context.Chapters.FindAsync(id);
+				Chapter? chapter = await _context.Chapters
+					.FirstOrDefaultAsync(chapter => chapter.Id == id);
 
 				if (chapter != null) return chapter;
 			}

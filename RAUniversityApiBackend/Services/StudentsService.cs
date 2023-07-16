@@ -39,13 +39,33 @@ namespace RAUniversityApiBackend.Services
 			return students;
 		}
 
+		public async Task<IEnumerable<Student>> GetStudentsByCourse(int IdCourse)
+		{
+			IEnumerable<Student> students = new List<Student>();
+
+			if (_context.Students != null)
+			{
+				students = await _context.Students
+					.Include(student => student.Courses.Where(course => !course.IsDeleted))
+					.Where(student => 
+						!student.IsDeleted &&
+						student.Courses.Any(course => course.Id == IdCourse)
+					)
+					.ToListAsync();
+			}
+
+			return students;
+		}
+
 		public async Task<Student> Get(int id)
 		{
 			if (_context.Students != null)
 			{
-				Student? student = await _context.Students.FindAsync(id);
+				Student? student = await _context.Students
+					.Include(student => student.Courses)
+					.FirstOrDefaultAsync(student => student.Id == id);
 
-				if (student != null) return student;
+				if (student != null ) return student;
 			}
 
 			throw new StudentNotExistException();
@@ -55,31 +75,55 @@ namespace RAUniversityApiBackend.Services
 		{
 			Student originalStudent = await Get(student.Id);
 
-			try
+			if (_context.Courses == null)
+				throw new StudentException("Entity set 'DBUniversityContext.Courses' is null.");
+
+			originalStudent.IdUserUpdatedBy = 1; // TODO: Take from session
+			originalStudent.UpdatedAt = DateTime.Now;
+			originalStudent.Name = student.Name;
+			originalStudent.Surname = student.Surname;
+			originalStudent.DateOfBird = student.DateOfBird;
+
+
+			List<Course> courses = student.Courses != null ? new(student.Courses) : new();
+
+			if (originalStudent.Courses != null)
+				originalStudent.Courses.Clear();
+			else
+				originalStudent.Courses = new List<Course>();
+
+			foreach (var course in courses)
 			{
-				originalStudent.IdUserUpdatedBy = 1; // TODO: Take from session
-				originalStudent.UpdatedAt = DateTime.Now;
-				originalStudent.Name = student.Name;
-				originalStudent.Surname = student.Surname;
-				originalStudent.DateOfBird = student.DateOfBird;
-				//originalStudent.Courses = student.Courses; // TODO Make N:N Update
+				Course existingCourse = await _context.Courses.FindAsync(course.Id) ??
+					throw new StudentException($"Course with ID '{course.Id}' not found.");
 
-				_context.Entry(originalStudent).State = EntityState.Modified;
-
-				await _context.SaveChangesAsync();
+				originalStudent.Courses.Add(existingCourse);
 			}
-			catch (DbUpdateConcurrencyException)
+
+			_context.Entry(originalStudent).State = EntityState.Modified;
+
+			using (var transaction = await _context.Database.BeginTransactionAsync())
 			{
-				throw new StudentException("An error occurred while updating the student.");
+				try
+				{
+					await _context.SaveChangesAsync();
+					transaction.Commit();
+				}
+				catch (Exception ex)
+				{
+					transaction.Rollback();
+					throw new StudentException(ex.Message);
+				}
 			}
 		}
 
 		public async Task<Student> Create(Student student)
 		{
 			if (_context.Students == null)
-			{
 				throw new StudentException("Entity set 'DBUniversityContext.Students' is null.");
-			}
+
+			if (_context.Courses == null)
+				throw new StudentException("Entity set 'DBUniversityContext.Courses' is null.");
 
 			student.IdUserCreatedBy = 1; // TODO: Take from session
 			student.CreatedAt = DateTime.Now;
@@ -87,9 +131,35 @@ namespace RAUniversityApiBackend.Services
 			student.DeletedAt = null;
 			student.IsDeleted = false;
 
-			_context.Students.Add(student);
-			await _context.SaveChangesAsync();
+			List<Course> courses = student.Courses != null ? new(student.Courses) : new();
 
+			student.Courses = new List<Course>();
+
+			foreach (var course in courses)
+			{
+				Course existingCourse = await _context.Courses.FindAsync(course.Id) ??
+					throw new StudentException($"Course with ID '{course.Id}' not found.");
+
+				student.Courses.Add(existingCourse);
+			}
+
+			_context.Students.Add(student);
+
+			using (var transaction = await _context.Database.BeginTransactionAsync())
+			{
+				try
+				{
+					await _context.SaveChangesAsync();
+					transaction.Commit();
+				}
+				catch (Exception ex)
+				{
+					transaction.Rollback();
+					throw new StudentException(ex.Message);
+				}
+			}
+
+			student.Courses.Clear();
 			return student;
 		}
 
@@ -161,10 +231,8 @@ namespace RAUniversityApiBackend.Services
 			if (_context.Students != null)
 			{
 				students = await _context.Students
-					.Where(student => !student.IsDeleted &&
-						(student.Courses == null ||
-						student.Courses.Count() == 0)
-					)
+					.Include(student => student.Courses)
+					.Where(student => !student.IsDeleted && student.Courses.Count == 0)
 					.ToListAsync();
 			}
 

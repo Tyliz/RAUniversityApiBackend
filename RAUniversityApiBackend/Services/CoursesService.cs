@@ -3,7 +3,6 @@ using RAUniversityApiBackend.DataAccess;
 using RAUniversityApiBackend.Exceptions.Course;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
-using System.Collections.Generic;
 
 namespace RAUniversityApiBackend.Services
 {
@@ -34,6 +33,7 @@ namespace RAUniversityApiBackend.Services
 			{
 				courses = await _context.Courses
 					.Where(course => !course.IsDeleted)
+					.Include(course => course.Categories.Where(category => !category.IsDeleted))
 					.ToListAsync();
 			}
 
@@ -44,7 +44,9 @@ namespace RAUniversityApiBackend.Services
 		{
 			if (_context.Courses != null)
 			{
-				Course? course = await _context.Courses.FindAsync(id);
+				Course? course = await _context.Courses
+					.Include(course => course.Categories.Where(category => !category.IsDeleted))
+					.FirstOrDefaultAsync(course => !course.IsDeleted && course.Id == id);
 
 				if (course != null) return course;
 			}
@@ -56,38 +58,50 @@ namespace RAUniversityApiBackend.Services
 		{
 			Course originalCourse = await Get(course.Id);
 
-			try
+			if (_context.Categories == null)
+				throw new CourseException("Entity set 'DBUniversityContext.Categories' is null.");
+
+			originalCourse.IdUserUpdatedBy = 1; // TODO: take from session
+			originalCourse.UpdatedAt = DateTime.Now;
+			originalCourse.Name = course.Name;
+			originalCourse.ShortDescription = course.ShortDescription;
+			originalCourse.LongDescription = course.LongDescription;
+			originalCourse.Requirements = course.Requirements;
+			originalCourse.Level = course.Level;
+
+			originalCourse.Categories.Clear();
+			foreach (var category in course.Categories)
 			{
-				originalCourse.IdUserUpdatedBy = 1; // TODO: take from session
-				originalCourse.UpdatedAt = DateTime.Now;
-				originalCourse.Name = course.Name;
-				originalCourse.ShortDescription = course.ShortDescription;
-				originalCourse.LongDescription = course.LongDescription;
-				originalCourse.Requirements = course.Requirements;
-				originalCourse.Level = course.Level;
-				//originalCourse.Categories = course.Categories; / /TODO: make N:N update
+				Category existingCategory = await _context.Categories.FindAsync(category.Id) ??
+					throw new CourseException($"Category with ID '{category.Id}' not found.");
 
-				_context.Entry(originalCourse).State = EntityState.Modified;
-
-				await _context.SaveChangesAsync();
+				originalCourse.Categories.Add(existingCategory);
 			}
-			catch (DbUpdateConcurrencyException)
+
+			_context.Entry(originalCourse).State = EntityState.Modified;
+
+			using (var transaction = await _context.Database.BeginTransactionAsync())
 			{
-				throw new CourseException("An error occurred while updating the course.");
+				try
+				{
+					await _context.SaveChangesAsync();
+					transaction.Commit();
+				}
+				catch (Exception ex)
+				{
+					transaction.Rollback();
+					throw new CourseException(ex.Message);
+				}
 			}
 		}
 
 		public async Task<Course> Create(Course course)
 		{
 			if (_context.Courses == null)
-			{
 				throw new CourseException("Entity set 'DBUniversityContext.Courses' is null.");
-			}
 
 			if (_context.Categories == null)
-			{
 				throw new CourseException("Entity set 'DBUniversityContext.Categories' is null.");
-			}
 
 			// TODO: Obtener el ID del usuario actual desde la sesión
 			course.IdUserUpdatedBy = 1;
@@ -97,14 +111,11 @@ namespace RAUniversityApiBackend.Services
 			course.IsDeleted = false;
 
 			List<Category> categories = new(course.Categories);
-			course.Categories.Clear();
+			course.Categories = new List<Category>();
 			foreach (var category in categories)
 			{
-				Category? existingCategory = await _context.Categories.FindAsync(category.Id);
-				if (existingCategory == null)
-				{
+				Category existingCategory = await _context.Categories.FindAsync(category.Id) ??
 					throw new CourseException($"Category with ID '{category.Id}' not found.");
-				}
 
 				course.Categories.Add(existingCategory);
 			}
@@ -124,6 +135,7 @@ namespace RAUniversityApiBackend.Services
 					throw new CourseException(ex.Message);
 				}
 			}
+
 			course.Categories.Clear();
 			return course;
 		}
@@ -159,74 +171,116 @@ namespace RAUniversityApiBackend.Services
 			await _context.SaveChangesAsync();
 		}
 
-		public async Task<List<Course>> GetWithoutsStudents()
+		public async Task<IEnumerable<Course>> GetWithoutsStudents()
 		{
-			List<Course> courses = new();
+			IEnumerable<Course> courses = new List<Course>();
 
 			if (_context.Courses != null)
 			{
-				courses = await _context.Courses.ToListAsync();
-
-				courses = courses
-					.Select(course => course)
+				courses = await _context.Courses
 					.Where(course =>
 						course.Students == null ||
 						!course.Students.Any()
 					)
-					.ToList();
+					.Include(course => course.Categories.Where(category => !category.IsDeleted))
+					.ToListAsync();
 			}
 
 			return courses;
 		}
 
-		public async Task<List<Course>> GetByLevelWithAtLeastOneStudent(CourseLevel courseLevel)
+		public async Task<IEnumerable<Course>> GetByLevelWithAtLeastOneStudent(CourseLevel courseLevel)
 		{
-			List<Course> courses = new();
+			IEnumerable<Course> courses = new List<Course>();
 
 			if (_context.Courses != null)
 			{
 				courses = await _context.Courses
-					.Select(course => course)
 					.Where(course =>
 						course.Level.Equals(courseLevel) &&
 						course.Students != null &&
 						course.Students.Count() > 0
 					)
+					.Include(course => course.Categories.Where(category => !category.IsDeleted))
 					.ToListAsync();
 			}
 
 			return courses;
 		}
 
-		public async Task<List<Course>> GetByCategory(int idCategory)
+		public async Task<IEnumerable<Course>> GetWithoutThemes()
 		{
-			List<Course> courses = new();
+			IEnumerable<Course> courses = new List<Course>();
 
 			if (_context.Courses != null)
 			{
 				courses = await _context.Courses
+					.Include(course =>
+						course.Chapters
+							.Where(chapter => !chapter.IsDeleted)
+					)
+					.Include(course => course.Categories.Where(category => !category.IsDeleted))
+					.Where(course => 
+						!course.IsDeleted &&
+						(
+							course.Chapters == null ||
+							course.Chapters.Count == 0 ||
+							course.Chapters.All(chapter => string.IsNullOrEmpty(chapter.Themes))
+						)
+					)
+					.ToListAsync();
+			}
+
+			return courses;
+		}
+
+		public async Task<IEnumerable<Course>> GetByCategory(int idCategory)
+		{
+			IEnumerable<Course> courses = new List<Course>();
+
+			if (_context.Courses != null)
+			{
+				courses = await _context.Courses
+					.Include(course => course.Categories.Where(category => !category.IsDeleted))
 					.Where(course =>
 						course.Categories.Any(category => category.Id == idCategory)
 					)
-					.Select(course => course)
 					.ToListAsync();
 			}
 
 			return courses;
 		}
 
-		public async Task<List<Course>> GetByLevelCategory(CourseLevel courseLevel, int idCategory)
+		public async Task<IEnumerable<Course>> GetByStudent(int IdStudent)
 		{
-			List<Course> courses = new();
+			IEnumerable<Course> courses = new List<Course>();
 
 			if (_context.Courses != null)
 			{
 				courses = await _context.Courses
-					.Select(course => course)
+					.Include(course => course.Students.Where(student => !student.IsDeleted))
+					.Where(course =>
+						course.Students.Any(student => student.Id == IdStudent)
+					)
+					.Include(course => course.Categories.Where(category => !category.IsDeleted))
+					.ToListAsync();
+			}
+
+			return courses;
+		}
+
+		public async Task<IEnumerable<Course>> GetByLevelCategory(CourseLevel courseLevel, int idCategory)
+		{
+			IEnumerable<Course> courses = new List<Course>();
+
+			if (_context.Courses != null)
+			{
+				courses = await _context.Courses
 					.Where(course =>
 						course.Level.Equals(courseLevel) &&
 						course.Categories.Any(category => category.Id == idCategory)
 					)
+					.Include(course => course.Categories.Where(category => !category.IsDeleted))
 					.ToListAsync();
 			}
 

@@ -33,7 +33,6 @@ namespace RAUniversityApiBackend.Services
 			{
 				categories = await _context.Categories
 					.Where(category => !category.IsDeleted)
-					.Select(category => new Category() { Id = category.Id, Name = category.Name })
 					.ToListAsync();
 			}
 
@@ -44,7 +43,8 @@ namespace RAUniversityApiBackend.Services
 		{
 			if (_context.Categories != null)
 			{
-				Category? category = await _context.Categories.FindAsync(id);
+				Category? category = await _context.Categories
+					.FirstOrDefaultAsync(category => !category.IsDeleted && category.Id == id);
 
 				if (category != null) return category;
 			}
@@ -62,7 +62,7 @@ namespace RAUniversityApiBackend.Services
 				originalCategory.UpdatedAt = DateTime.Now;
 				originalCategory.Name = category.Name;
 
-				_context.Entry(category).State = EntityState.Modified;
+				_context.Entry(originalCategory).State = EntityState.Modified;
 
 				await _context.SaveChangesAsync();
 			}
