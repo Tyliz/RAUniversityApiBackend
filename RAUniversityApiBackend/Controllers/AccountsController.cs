@@ -20,6 +20,7 @@ namespace RAUniversityApiBackend.Controllers
 			_jwtSettings = jwtSettings;
 		}
 
+		// TODO: Chage by Users DB
 		private IEnumerable<User> Logins = new List<User>()
 		{
 			new User() {
@@ -80,6 +81,7 @@ namespace RAUniversityApiBackend.Controllers
 			}
 		}
 
+		//RBAC Role based access control
 		[HttpGet]
 		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public IActionResult GetUserList()
