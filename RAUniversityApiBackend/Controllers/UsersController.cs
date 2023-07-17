@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RAUniversityApiBackend.Exceptions.User;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
@@ -50,6 +52,7 @@ namespace RAUniversityApiBackend.Controllers
 		// PUT: api/Users/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<IActionResult> PutUser(int id, UserUpdateViewModel user)
 		{
 			if (id != user.Id) return BadRequest();
@@ -72,6 +75,7 @@ namespace RAUniversityApiBackend.Controllers
 		// POST: api/Users
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<ActionResult<UserViewModel>> PostUser(UserCreateViewModel user)
 		{
 			try
@@ -92,6 +96,7 @@ namespace RAUniversityApiBackend.Controllers
 
 		// DELETE: api/Users/5
 		[HttpDelete("{id}")]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<IActionResult> DeleteUser(int id)
 		{
 			try

@@ -18,5 +18,8 @@ namespace RAUniversityApiBackend.ViewModels.User
 
 		[Required]
 		public string Password { get; set; } = string.Empty;
+
+		[Required]
+		public ICollection<int> Roles { get; set; } = new List<int>();
 	}
 }

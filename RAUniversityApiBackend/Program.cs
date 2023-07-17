@@ -35,6 +35,7 @@ builder.Services.AddScoped<IChaptersService, ChaptersService>();
 builder.Services.AddScoped<ICoursesService, CoursesService>();
 builder.Services.AddScoped<IStudentsService, StudentsService>();
 builder.Services.AddScoped<IUsersService, UsersService>();
+builder.Services.AddScoped<IAccountsService, AccountsService>();
 
 
 // 5. CORDS Configuration

@@ -1,4 +1,6 @@
-﻿namespace RAUniversityApiBackend.Models.DataModels
+﻿using RAUniversityApiBackend.Models.DataModels;
+
+namespace RAUniversityApiBackend.Models.JwtModels
 {
 	public class UserToken
 	{
@@ -10,5 +12,6 @@
 		public string EmailId { get; set; }
 		public Guid GuidId { get; set; }
 		public DateTime ExpiredTime { get; set; }
+		public IEnumerable<string> Roles { get; set; } = new List<string>();
 	}
 }

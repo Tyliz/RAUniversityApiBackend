@@ -1,11 +1,11 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using RAUniversityApiBackend.Models.DataModels;
+using RAUniversityApiBackend.Models.JwtModels;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace RAUniversityApiBackend.Helpers
 {
-	public static class JwtHelper
+    public static class JwtHelper
 	{
 		public static IEnumerable<Claim> GetClaims(this UserToken userAccount, Guid Id)
 		{
@@ -18,15 +18,10 @@ namespace RAUniversityApiBackend.Helpers
 				new Claim(ClaimTypes.Expiration, DateTime.UtcNow.AddDays(1).ToString("MMM ddd dd yyyy HH:mm:ss tt")),
 			};
 
-			if (userAccount.UserName == "Admin")
-			{
-				claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
-			}
-			else if (userAccount.UserName == "User1")
-			{
-				claims.Add(new Claim(ClaimTypes.Role, "User"));
-				claims.Add(new Claim("UserOnly", "User1"));
-			}
+			foreach (string role in userAccount.Roles)
+				claims.Add(new Claim(ClaimTypes.Role, role));
+
+			//claims.Add(new Claim("UserOnly", "User1"));
 
 			return claims;
 		}

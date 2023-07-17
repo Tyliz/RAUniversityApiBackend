@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RAUniversityApiBackend.Exceptions.Chapter;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
@@ -61,6 +63,7 @@ namespace RAUniversityApiBackend.Controllers
 		// PUT: api/Chapters/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<IActionResult> PutChapter(int id, ChapterUpdateViewModel chapter)
 		{
 			if (id != chapter.Id) return BadRequest();
@@ -83,6 +86,7 @@ namespace RAUniversityApiBackend.Controllers
 		// POST: api/Chapters
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<ActionResult<ChapterViewModel>> PostChapter(ChapterCreateViewModel chapter)
 		{
 			try
@@ -103,6 +107,7 @@ namespace RAUniversityApiBackend.Controllers
 
 		// DELETE: api/Chapters/5
 		[HttpDelete("{id}")]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<IActionResult> DeleteChapter(int id)
 		{
 			try

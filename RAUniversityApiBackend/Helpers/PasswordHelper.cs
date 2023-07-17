@@ -1,6 +1,6 @@
-﻿namespace RAUniversityApiBackend.Services
+﻿namespace RAUniversityApiBackend.Helpers
 {
-	public static class PasswordService
+	public static class PasswordHelper
 	{
 		public static string HashPassword(string password) => BCrypt.Net.BCrypt.HashPassword(password);
 

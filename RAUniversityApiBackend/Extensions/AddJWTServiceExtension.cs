@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using RAUniversityApiBackend.Models.DataModels;
+using RAUniversityApiBackend.Models.JwtModels;
 using System.Text;
 
 namespace RAUniversityApiBackend.Extensions

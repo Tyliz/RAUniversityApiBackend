@@ -1,11 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using RAUniversityApiBackend.Exceptions.User;
 using RAUniversityApiBackend.Helpers;
 using RAUniversityApiBackend.Models.DataModels;
+using RAUniversityApiBackend.Models.JwtModels;
+using RAUniversityApiBackend.Services.Interfaces;
 using RAUniversityApiBackend.ViewModels.User;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace RAUniversityApiBackend.Controllers
 {
@@ -13,67 +12,41 @@ namespace RAUniversityApiBackend.Controllers
 	[ApiController]
 	public class AccountsController : ControllerBase
 	{
+		private readonly IAccountsService _service;
 		private readonly JwtSettings _jwtSettings;
 
-		public AccountsController(JwtSettings jwtSettings)
+		public AccountsController(IAccountsService service, JwtSettings jwtSettings)
 		{
 			_jwtSettings = jwtSettings;
+			_service = service;
 		}
 
-		// TODO: Chage by Users DB
-		private IEnumerable<User> Logins = new List<User>()
-		{
-			new User() {
-				Id = 1,
-				Email = "tyliz@gmail.com",
-				UserName = "Admin",
-				Password = "Admin",
-			},
-			new User() {
-				Id = 2,
-				Email = "lunes@gmail.com",
-				UserName = "User1",
-				Password = "Lunes",
-			},
-		};
 
 		[HttpPost]
 		public async Task<IActionResult> GetToken(UserLogin userLogin)
 		{
 			try
 			{
-				var token = new UserToken();
-				var valid = Logins.Any(user =>
-					user.UserName.Equals(userLogin.UserName, StringComparison.OrdinalIgnoreCase)
+				UserToken token = new UserToken();
+				User user = await _service.ValidateCredential(userLogin.UserName, userLogin.Password);
+
+				token = JwtHelper.GetTokenKey(
+					new UserToken
+					{
+						UserName = user.UserName,
+						EmailId = user.Email,
+						Id = user.Id,
+						Roles = user.Roles.Select(role => role.Name),
+						GuidId = Guid.NewGuid(),
+					},
+					_jwtSettings
 				);
 
-				if (valid)
-				{
-					var user = Logins.FirstOrDefault(user =>
-						user.UserName.Equals(userLogin.UserName, StringComparison.OrdinalIgnoreCase)
-					);
-
-					if (user == null)
-					{
-						throw new Exception();
-					}
-
-					token = JwtHelper.GetTokenKey(
-						new UserToken
-						{
-							UserName = user.UserName,
-							EmailId = user.Email,
-							Id = user.Id,
-							GuidId = Guid.NewGuid(),
-						},
-						_jwtSettings
-					);
-
-				}
-				else
-					return BadRequest("Wrong username or password");
-
 				return Ok(token);
+			}
+			catch (UserNotExistException)
+			{
+				return BadRequest("Wrong username or password");
 			}
 			catch (Exception ex)
 			{
@@ -82,11 +55,12 @@ namespace RAUniversityApiBackend.Controllers
 		}
 
 		//RBAC Role based access control
-		[HttpGet]
-		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
-		public IActionResult GetUserList()
-		{
-			return Ok(Logins);
-		}
+
+		//[HttpGet]
+		//[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
+		//public IActionResult GetUserList()
+		//{
+		//	return Ok(Logins);
+		//}
 	}
 }

@@ -5,10 +5,8 @@ namespace RAUniversityApiBackend.Models.DataModels
 {
 	public abstract class BaseEntity
 	{
-		[Required]
-		[Key]
+		[Required, Key, Column(Order = 0)]
 		[DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-		[Column(Order = 0)]
 		public int Id { get; set; }
 
 		public DateTime CreatedAt { get; set; } = DateTime.Now;

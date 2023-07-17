@@ -20,6 +20,9 @@ namespace RAUniversityApiBackend.ViewModels.User
 		[Required, EmailAddress]
 		public string Email { get; set; } = string.Empty;
 
+		[Required]
+		public ICollection<int> Roles { get; set; } = new List<int>();
+
 
 		public static UserViewModel Create(Models.DataModels.User user)
 		{
@@ -29,7 +32,8 @@ namespace RAUniversityApiBackend.ViewModels.User
 				UserName = user.UserName,
 				Name = user.Name,
 				Surname = user.Surname,
-				Email = user.Email
+				Email = user.Email,
+				Roles = user.Roles.Select(role => role.Id).ToList(),
 			};
 		}
 	}

@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RAUniversityApiBackend.Exceptions.Course;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
@@ -95,6 +96,7 @@ namespace RAUniversityApiBackend.Controllers
 		// PUT: api/Courses/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<IActionResult> PutCourse(int id, CourseUpdateViewModel course)
 		{
 			if (id != course.Id) return BadRequest();
@@ -117,6 +119,7 @@ namespace RAUniversityApiBackend.Controllers
 		// POST: api/Courses
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<ActionResult<CourseViewModel>> PostCourse(CourseCreateViewModel course)
 		{
 			try
@@ -136,6 +139,7 @@ namespace RAUniversityApiBackend.Controllers
 
 		// DELETE: api/Courses/5
 		[HttpDelete("{id}")]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<IActionResult> DeleteCourse(int id)
 		{
 			try

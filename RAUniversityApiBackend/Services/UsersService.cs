@@ -1,8 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RAUniversityApiBackend.DataAccess;
+using RAUniversityApiBackend.Exceptions.Student;
 using RAUniversityApiBackend.Exceptions.User;
+using RAUniversityApiBackend.Helpers;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
+using System.Data;
 
 namespace RAUniversityApiBackend.Services
 {
@@ -33,6 +36,7 @@ namespace RAUniversityApiBackend.Services
 			{
 				users = await _context.Users
 					.Where(user => !user.IsDeleted)
+					.Include(user => user.Roles)
 					.ToListAsync();
 			}
 
@@ -44,6 +48,7 @@ namespace RAUniversityApiBackend.Services
 			if (_context.Users != null)
 			{
 				User? user = await _context.Users
+					.Include(user => user.Roles)
 					.FirstOrDefaultAsync(user => !user.IsDeleted && user.Id == id);
 
 				if (user != null) return user;
@@ -54,36 +59,59 @@ namespace RAUniversityApiBackend.Services
 
 		public async Task Update(User user)
 		{
+			if (_context.Roles == null)
+				throw new StudentException("Entity set 'DBUniversityContext.Roles' is null.");
+
 			User originalUser = await Get(user.Id);
 
-			try
+			originalUser.UpdatedAt = DateTime.Now;
+			originalUser.IdUserUpdatedBy = user.IdUserUpdatedBy; // TODO: Change that id for Sesion id User
+			originalUser.UserName = user.UserName;
+			originalUser.Name = user.Name;
+			originalUser.Surname = user.Surname;
+			originalUser.Email = user.Email;
+
+			List<Role> Roles = user.Roles != null ? new(user.Roles) : new();
+
+			originalUser.Roles.Clear();
+
+			foreach (var Role in Roles)
 			{
-				originalUser.UpdatedAt = DateTime.Now;
-				originalUser.IdUserUpdatedBy = user.IdUserUpdatedBy; // TODO: Change that id for Sesion id User
-				originalUser.UserName = user.UserName;
-				originalUser.Name = user.Name;
-				originalUser.Surname = user.Surname;
-				originalUser.Email = user.Email;
+				Role existingRole = await _context.Roles.FindAsync(Role.Id) ??
+					throw new StudentException($"Role with ID '{Role.Id}' not found.");
 
-				_context.Entry(originalUser).State = EntityState.Modified;
-
-				await _context.SaveChangesAsync();
+				originalUser.Roles.Add(existingRole);
 			}
-			catch (DbUpdateConcurrencyException)
+
+
+			_context.Entry(originalUser).State = EntityState.Modified;
+
+
+			using (var transaction = await _context.Database.BeginTransactionAsync())
 			{
-				throw new UserException("An error occurred while updating the user.");
+				try
+				{
+					await _context.SaveChangesAsync();
+					transaction.Commit();
+				}
+				catch (Exception ex)
+				{
+					transaction.Rollback();
+					throw new UserException(ex.Message);
+				}
 			}
 		}
 
 		public async Task<User> Create(User user)
 		{
+			if (_context.Roles == null)
+				throw new StudentException("Entity set 'DBUniversityContext.Roles' is null.");
+
 			if (_context.Users == null)
-			{
 				throw new UserException("Entity set 'DBUniversityContext.Users' is null.");
-			}
 
 			user.CreatedAt = DateTime.Now;
-			user.Password = PasswordService.HashPassword(user.Password);
+			user.Password = PasswordHelper.HashPassword(user.Password);
 			user.UpdatedAt = null;
 			//user.IdUserCreatedBy = null; TODO: make automatic
 			user.IdUserDeletedBy = null;
@@ -91,8 +119,32 @@ namespace RAUniversityApiBackend.Services
 			user.DeletedAt = null;
 			user.IsDeleted = false;
 
+			List<Role> Roles = user.Roles != null ? new(user.Roles) : new();
+			user.Roles = new List<Role>();
+
+			foreach (var Role in Roles)
+			{
+				Role existingRole = await _context.Roles.FindAsync(Role.Id) ??
+					throw new StudentException($"Role with ID '{Role.Id}' not found.");
+
+				user.Roles.Add(existingRole);
+			}
+
 			_context.Users.Add(user);
-			await _context.SaveChangesAsync();
+
+			using (var transaction = await _context.Database.BeginTransactionAsync())
+			{
+				try
+				{
+					await _context.SaveChangesAsync();
+					transaction.Commit();
+				}
+				catch (Exception ex)
+				{
+					transaction.Rollback();
+					throw new UserException(ex.Message);
+				}
+			}
 
 			return user;
 		}
@@ -136,6 +188,7 @@ namespace RAUniversityApiBackend.Services
 			{
 				users = await _context.Users
 					.Where(user => !user.IsDeleted && user.Email == email)
+					.Include(user => user.Roles)
 					.ToListAsync();
 			}
 

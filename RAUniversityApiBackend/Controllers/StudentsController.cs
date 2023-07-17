@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RAUniversityApiBackend.Exceptions.Student;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
@@ -72,6 +74,7 @@ namespace RAUniversityApiBackend.Controllers
 		// PUT: api/Students/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<IActionResult> PutStudent(int id, StudentUpdateViewModel student)
 		{
 			if (id != student.Id) return BadRequest();
@@ -94,6 +97,7 @@ namespace RAUniversityApiBackend.Controllers
 		// POST: api/Students
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<ActionResult<StudentViewModel>> PostStudent(StudentCreateViewModel student)
 		{
 			try
@@ -114,6 +118,7 @@ namespace RAUniversityApiBackend.Controllers
 
 		// DELETE: api/Students/5
 		[HttpDelete("{id}")]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<IActionResult> DeleteStudent(int id)
 		{
 			try

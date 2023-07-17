@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using RAUniversityApiBackend.Exceptions.Category;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
 using RAUniversityApiBackend.ViewModels.Category;
-using System.ComponentModel;
 
 namespace RAUniversityApiBackend.Controllers
 {
@@ -52,6 +53,7 @@ namespace RAUniversityApiBackend.Controllers
 		// PUT: api/Categories/5
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPut("{id}")]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<IActionResult> PutCategory(int id, CategoryUpdateViewModel category)
 		{
 			if (id != category.Id) return BadRequest();
@@ -74,6 +76,7 @@ namespace RAUniversityApiBackend.Controllers
 		// POST: api/Categories
 		// To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
 		[HttpPost]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<ActionResult<CategoryViewModel>> PostCategory(CategoryCreateViewModel category)
 		{
 			try
@@ -94,6 +97,7 @@ namespace RAUniversityApiBackend.Controllers
 
 		// DELETE: api/Categories/5
 		[HttpDelete("{id}")]
+		[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "Administrator")]
 		public async Task<IActionResult> DeleteCategory(int id)
 		{
 			try

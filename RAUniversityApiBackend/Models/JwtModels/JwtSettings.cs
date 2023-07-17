@@ -1,4 +1,4 @@
-﻿namespace RAUniversityApiBackend.Models.DataModels
+﻿namespace RAUniversityApiBackend.Models.JwtModels
 {
 	public class JwtSettings
 	{

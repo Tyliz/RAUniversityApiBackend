@@ -35,6 +35,8 @@ namespace RAUniversityApiBackend.Models.DataModels
 		[Column(Order = 8)]
 		public int? IdUserDeletedBy { get; set; }
 
+		public ICollection<Role> Roles { get; set; } = new List<Role>();
+
 
 		public static User Create(UserViewModel model)
 		{
@@ -45,6 +47,7 @@ namespace RAUniversityApiBackend.Models.DataModels
 				Name = model.Name,
 				Surname = model.Surname,
 				Email = model.Email,
+				Roles = model.Roles.Select(role => new Role { Id = role }).ToList(),
 			};
 		}
 
@@ -57,6 +60,7 @@ namespace RAUniversityApiBackend.Models.DataModels
 				Surname = model.Surname,
 				Email = model.Email,
 				Password = model.Password,
+				Roles = model.Roles.Select(role => new Role { Id = role }).ToList(),
 			};
 		}
 
@@ -69,6 +73,7 @@ namespace RAUniversityApiBackend.Models.DataModels
 				Name = model.Name,
 				Surname = model.Surname,
 				Email = model.Email,
+				Roles = model.Roles.Select(role => new Role { Id = role }).ToList(),
 			};
 		}
 	}
