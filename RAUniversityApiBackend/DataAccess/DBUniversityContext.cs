@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RAUniversityApiBackend.Models.DataModels;
+using RAUniversityApiBackend.Extensions;
+
 
 namespace RAUniversityApiBackend.DataAccess
 {
 	public class DBUniversityContext : DbContext
 	{
-        public DBUniversityContext(DbContextOptions<DBUniversityContext> options): base(options) {}
+		public DBUniversityContext(DbContextOptions<DBUniversityContext> options) : base(options) { }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{

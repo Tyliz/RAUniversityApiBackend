@@ -1,4 +1,5 @@
-﻿using RAUniversityApiBackend.ViewModels.User;
+﻿using RAUniversityApiBackend.Models.DataAnnotations;
+using RAUniversityApiBackend.ViewModels.User;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -8,6 +9,7 @@ namespace RAUniversityApiBackend.Models.DataModels
 	{
 		[Required, StringLength(50)]
 		[Column(Order = 1)]
+		[Unique(ErrorMessage = "The username already exist")]
 		public string UserName { get; set; } = string.Empty;
 
 		[Required, StringLength(50)]
@@ -20,6 +22,7 @@ namespace RAUniversityApiBackend.Models.DataModels
 
 		[Required, EmailAddress]
 		[Column(Order = 4)]
+		[Unique(ErrorMessage = "The email already exist")]
 		public string Email { get; set; } = string.Empty;
 
 		[Required]

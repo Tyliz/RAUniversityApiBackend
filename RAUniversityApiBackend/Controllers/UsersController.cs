@@ -80,13 +80,18 @@ namespace RAUniversityApiBackend.Controllers
 		{
 			try
 			{
-				User newUser = await _service.Create(Models.DataModels.User.Create(user));
+				if (ModelState.IsValid)
+				{
+					User newUser = await _service.Create(Models.DataModels.User.Create(user));
 
-				return CreatedAtAction(
-					"GetUser",
-					new { id = newUser.Id },
-					UserViewModel.Create(newUser)
-				);
+					return CreatedAtAction(
+						"GetUser",
+						new { id = newUser.Id },
+						UserViewModel.Create(newUser)
+					);
+				}
+
+				return BadRequest(ModelState.Values.Select(x => x.Errors));
 			}
 			catch (UserException ex)
 			{
