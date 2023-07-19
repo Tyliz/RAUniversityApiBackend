@@ -9,6 +9,8 @@ using RAUniversityApiBackend.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 10. Localization
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 // 2. Connect with the SQL Server Express
 const string CONNECTION_NAME = "DBUniversity";
@@ -90,6 +92,16 @@ builder.Services.AddSwaggerGen(options =>
 );
 
 var app = builder.Build();
+
+// 11. SUPPORTED CULTURES
+var suppertedCultures = new[] { "en-US", "es-ES", "fr-FR", "de-de", };
+var localizationOptions = new RequestLocalizationOptions()
+	.SetDefaultCulture(suppertedCultures[0]) // English by default
+	.AddSupportedCultures(suppertedCultures) // Add all supported cultures for UI 
+	.AddSupportedUICultures(suppertedCultures); // Add supported cultures for UI 
+
+// 12. ADD LOCALIZATION to App
+app.UseRequestLocalization(localizationOptions);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
