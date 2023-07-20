@@ -5,8 +5,7 @@ using RAUniversityApiBackend.DataAccess;
 using RAUniversityApiBackend.Extensions;
 using RAUniversityApiBackend.Services;
 using RAUniversityApiBackend.Services.Interfaces;
-// 13. Using serilog for events
-using Serilog;
+using Serilog; // 13. Using serilog for events
 
 var builder = WebApplication.CreateBuilder(args);
 
