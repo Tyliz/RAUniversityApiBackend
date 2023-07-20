@@ -1,4 +1,3 @@
-// Version 0.0.1
 // 1. Using para trabajar con entity framework
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -6,8 +5,18 @@ using RAUniversityApiBackend.DataAccess;
 using RAUniversityApiBackend.Extensions;
 using RAUniversityApiBackend.Services;
 using RAUniversityApiBackend.Services.Interfaces;
+using Serilog; // 13. Using serilog for events
 
 var builder = WebApplication.CreateBuilder(args);
+
+// 14. Config Serilog
+builder.Host.UseSerilog((hostBuilderCtx, loggerConf) =>
+{
+	loggerConf
+		.WriteTo.Console()
+		.WriteTo.Debug()
+		.ReadFrom.Configuration(hostBuilderCtx.Configuration);
+});
 
 // 10. Localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -109,6 +118,9 @@ if (app.Environment.IsDevelopment())
 	app.UseSwagger();
 	app.UseSwaggerUI();
 }
+
+// 15. Tell app to use Serilog
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 

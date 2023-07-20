@@ -18,24 +18,34 @@ namespace RAUniversityApiBackend.Controllers
 		private readonly JwtSettings _jwtSettings;
 		private readonly IStringLocalizer<AccountsController> _localaizer;
 		private readonly IStringLocalizer<SharedResources> _sharedResourcesLocalizer;
+		private readonly ILogger<AccountsController> _logger;
 
 		public AccountsController(
 			IAccountsService service,
 			JwtSettings jwtSettings,
 			IStringLocalizer<AccountsController> localaizer,
-			IStringLocalizer<SharedResources> sharedResourcesLocalizer
+			IStringLocalizer<SharedResources> sharedResourcesLocalizer,
+			ILogger<AccountsController> logger
 		)
 		{
 			_jwtSettings = jwtSettings;
 			_service = service;
 			_localaizer = localaizer;
 			_sharedResourcesLocalizer = sharedResourcesLocalizer;
+			_logger = logger;
 		}
 
 
 		[HttpPost]
 		public async Task<IActionResult> GetToken(UserLogin userLogin)
 		{
+			_logger.LogTrace($"{nameof(AccountsController)} - {nameof(GetToken)} - Trace Level Log");
+			_logger.LogDebug($"{nameof(AccountsController)} - {nameof(GetToken)} - Debug Level Log");
+			_logger.LogInformation($"{nameof(AccountsController)} - {nameof(GetToken)} - Information Level Log");
+			_logger.LogWarning($"{nameof(AccountsController)} - {nameof(GetToken)} - Warning Level Log");
+			_logger.LogError($"{nameof(AccountsController)} - {nameof(GetToken)} - Error Level Log");
+			_logger.LogCritical($"{nameof(AccountsController)} - {nameof(GetToken)} - Critical Level Log");
+
 			try
 			{
 				if (ModelState.IsValid)
