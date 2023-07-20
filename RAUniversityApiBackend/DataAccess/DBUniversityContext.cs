@@ -1,13 +1,21 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Extensions;
-
+using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace RAUniversityApiBackend.DataAccess
 {
 	public class DBUniversityContext : DbContext
 	{
-		public DBUniversityContext(DbContextOptions<DBUniversityContext> options) : base(options) { }
+		private readonly ILoggerFactory _loggerFactory;
+
+		public DBUniversityContext(
+			DbContextOptions<DBUniversityContext> options,
+			ILoggerFactory loggerFactory
+		) : base(options)
+		{
+			_loggerFactory = loggerFactory;
+		}
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -42,5 +50,23 @@ namespace RAUniversityApiBackend.DataAccess
 		public DbSet<Category>? Categories { get; set; }
 
 		public DbSet<Student>? Students { get; set; }
+
+
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+		{
+			var logger = _loggerFactory.CreateLogger<DBUniversityContext>();
+			// Saves every action
+			//optionsBuilder.LogTo(message => logger.Log(LogLevel.Information, message, new[] { DbLoggerCategory.Database.Name }));
+			//optionsBuilder.EnableSensitiveDataLogging();
+
+			// Filter Information logs
+			optionsBuilder
+				.LogTo(
+					message =>
+						logger.Log(LogLevel.Information, message, new[] { DbLoggerCategory.Database.Name })
+					, LogLevel.Information)
+				.EnableSensitiveDataLogging()
+				.EnableDetailedErrors();
+		}
 	}
 }
