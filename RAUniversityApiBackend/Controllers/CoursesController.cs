@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RAUniversityApiBackend.Exceptions.Course;
+using RAUniversityApiBackend.Goblal;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
 using RAUniversityApiBackend.ViewModels.Course;
@@ -13,43 +14,82 @@ namespace RAUniversityApiBackend.Controllers
 	public class CoursesController : ControllerBase
 	{
 		private readonly ICoursesService _service;
+		private readonly ILogger<CoursesController> _logger;
+		private string Name
+		{
+			get
+			{
+				return nameof(CoursesController);
+			}
+		}
 
-		public CoursesController(ICoursesService coursesService)
+		public CoursesController(ICoursesService coursesService, ILogger<CoursesController> logger)
 		{
 			_service = coursesService;
+			_logger = logger;
 		}
 
 		// GET: api/Courses
 		[HttpGet]
 		public async Task<ActionResult<IEnumerable<CourseViewModel>>> GetCourses()
 		{
-			IEnumerable<Course> courses = await _service.GetAll();
-			IEnumerable<CourseViewModel> coursesViewModel = courses
-				.Select(course => CourseViewModel.Create(course));
+			try
+			{
+				IEnumerable<Course> courses = await _service.GetAll();
+				IEnumerable<CourseViewModel> coursesViewModel = courses
+					.Select(course => CourseViewModel.Create(course));
 
-			return Ok(coursesViewModel);
+				return Ok(coursesViewModel);
+			}
+			catch (Exception ex)
+			{
+				string message = $"{Name} - {nameof(GetCourses)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CoursesControllerGetCourses), ex, message);
+
+				return Ok(Array.Empty<CourseViewModel>());
+			}
 		}
 
 		// GET: api/Courses/Category/1
 		[HttpGet("Category/{idCategoria}")]
 		public async Task<ActionResult<IEnumerable<CourseViewModel>>> GetByCategory(int idCategoria)
 		{
-			IEnumerable<Course> courses = await _service.GetByCategory(idCategoria);
-			IEnumerable<CourseViewModel> coursesViewModel = courses
-				.Select(course => CourseViewModel.Create(course));
+			try
+			{
+				IEnumerable<Course> courses = await _service.GetByCategory(idCategoria);
+				IEnumerable<CourseViewModel> coursesViewModel = courses
+					.Select(course => CourseViewModel.Create(course));
 
-			return Ok(coursesViewModel);
+				return Ok(coursesViewModel);
+			}
+			catch (Exception ex)
+			{
+				string message = $"{Name} - {nameof(GetByCategory)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CoursesControllerGetByCategory), ex, message);
+
+				return Ok(Array.Empty<CourseViewModel>());
+			}
 		}
 
 		// GET: api/Courses/Student/1
 		[HttpGet("Student/{idStudent}")]
 		public async Task<ActionResult<IEnumerable<CourseViewModel>>> GetByStudent(int idStudent)
 		{
-			IEnumerable<Course> courses = await _service.GetByStudent(idStudent);
-			IEnumerable<CourseViewModel> coursesViewModel = courses
-				.Select(course => CourseViewModel.Create(course));
+			try
+			{
+				IEnumerable<Course> courses = await _service.GetByStudent(idStudent);
+				IEnumerable<CourseViewModel> coursesViewModel = courses
+					.Select(course => CourseViewModel.Create(course));
 
-			return Ok(coursesViewModel);
+				return Ok(coursesViewModel);
+			}
+			catch (Exception ex)
+			{
+				string message = $"{Name} - {nameof(GetByStudent)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CoursesControllerGetByStudent), ex, message);
+
+				return Ok(Array.Empty<CourseViewModel>());
+			}
 		}
 
 		// GET: api/Courses/5
@@ -67,6 +107,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (CourseException ex)
 			{
+				string message = $"{Name} - {nameof(GetCourse)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CoursesControllerGetCourses), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
@@ -89,6 +132,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (CourseException ex)
 			{
+				string message = $"{Name} - {nameof(GetWithoutThemes)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CoursesControllerGetWithoutThemes), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
@@ -112,6 +158,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (CourseException ex)
 			{
+				string message = $"{Name} - {nameof(PutCourse)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CoursesControllerPutCourse), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
@@ -133,6 +182,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (CourseException ex)
 			{
+				string message = $"{Name} - {nameof(PostCourse)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CoursesControllerPostCourse), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
@@ -153,6 +205,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (CourseException ex)
 			{
+				string message = $"{Name} - {nameof(DeleteCourse)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CoursesControllerDeleteCourse), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}

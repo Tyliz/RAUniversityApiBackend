@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RAUniversityApiBackend.Exceptions.User;
+using RAUniversityApiBackend.Goblal;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
+using RAUniversityApiBackend.ViewModels.Student;
 using RAUniversityApiBackend.ViewModels.User;
 
 namespace RAUniversityApiBackend.Controllers
@@ -13,21 +15,40 @@ namespace RAUniversityApiBackend.Controllers
 	public class UsersController : ControllerBase
 	{
 		private readonly IUsersService _service;
+		private readonly ILogger<UsersController> _logger;
+		private string Name
+		{
+			get
+			{
+				return nameof(StudentsController);
+			}
+		}
 
-		public UsersController(IUsersService service)
+		public UsersController(IUsersService service, ILogger<UsersController> logger)
 		{
 			_service = service;
+			_logger = logger;
 		}
 
 		// GET: api/Users
 		[HttpGet]
 		public async Task<ActionResult<IEnumerable<UserViewModel>>> GetUsers()
 		{
-			IEnumerable<User> users = await _service.GetAll();
-			IEnumerable<UserViewModel> usersViewModel = users
-				.Select(user => UserViewModel.Create(user));
+			try
+			{
+				IEnumerable<User> users = await _service.GetAll();
+				IEnumerable<UserViewModel> usersViewModel = users
+					.Select(user => UserViewModel.Create(user));
 
-			return Ok(usersViewModel);
+				return Ok(usersViewModel);
+			}
+			catch (Exception ex)
+			{
+				string message = $"{Name} - {nameof(GetUsers)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.UsersControllerGetUsers), ex, message);
+
+				return Ok(Array.Empty<StudentViewModel>());
+			}
 		}
 
 		// GET: api/Users/5
@@ -45,6 +66,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (UserException ex)
 			{
+				string message = $"{Name} - {nameof(GetUser)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.UsersControllerGetUser), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
@@ -68,6 +92,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (UserException ex)
 			{
+				string message = $"{Name} - {nameof(PutUser)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.UsersControllerPutUser), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
@@ -95,6 +122,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (UserException ex)
 			{
+				string message = $"{Name} - {nameof(PostUser)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.UsersControllerPostUser), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
@@ -115,6 +145,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (UserException ex)
 			{
+				string message = $"{Name} - {nameof(DeleteUser)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.UsersControllerDeleteUser), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}

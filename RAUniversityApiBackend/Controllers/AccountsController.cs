@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using RAUniversityApiBackend.Exceptions.User;
+using RAUniversityApiBackend.Goblal;
 using RAUniversityApiBackend.Helpers;
 using RAUniversityApiBackend.Models;
 using RAUniversityApiBackend.Models.DataModels;
@@ -10,7 +11,7 @@ using RAUniversityApiBackend.ViewModels.User;
 
 namespace RAUniversityApiBackend.Controllers
 {
-    [Route("api/[controller]/[action]")]
+	[Route("api/[controller]/[action]")]
 	[ApiController]
 	public class AccountsController : ControllerBase
 	{
@@ -39,13 +40,6 @@ namespace RAUniversityApiBackend.Controllers
 		[HttpPost]
 		public async Task<IActionResult> GetToken(UserLogin userLogin)
 		{
-			_logger.LogTrace($"{nameof(AccountsController)} - {nameof(GetToken)} - Trace Level Log");
-			_logger.LogDebug($"{nameof(AccountsController)} - {nameof(GetToken)} - Debug Level Log");
-			_logger.LogInformation($"{nameof(AccountsController)} - {nameof(GetToken)} - Information Level Log");
-			_logger.LogWarning($"{nameof(AccountsController)} - {nameof(GetToken)} - Warning Level Log");
-			_logger.LogError($"{nameof(AccountsController)} - {nameof(GetToken)} - Error Level Log");
-			_logger.LogCritical($"{nameof(AccountsController)} - {nameof(GetToken)} - Critical Level Log");
-
 			try
 			{
 				if (ModelState.IsValid)
@@ -88,6 +82,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (Exception ex)
 			{
+				string message = $"{nameof(AccountsController)} - {nameof(GetToken)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.AccountsControllerGetToken), ex, message);
+
 				throw new Exception("Get Token", ex);
 			}
 		}

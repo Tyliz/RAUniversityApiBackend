@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RAUniversityApiBackend.Exceptions.Student;
+using RAUniversityApiBackend.Goblal;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
 using RAUniversityApiBackend.ViewModels.Student;
@@ -13,43 +14,82 @@ namespace RAUniversityApiBackend.Controllers
 	public class StudentsController : ControllerBase
 	{
 		private readonly IStudentsService _service;
+		private readonly ILogger<StudentsController> _logger;
+		private string Name
+		{
+			get
+			{
+				return nameof(StudentsController);
+			}
+		}
 
-		public StudentsController(IStudentsService studentsService)
+		public StudentsController(IStudentsService studentsService, ILogger<StudentsController> logger)
 		{
 			_service = studentsService;
+			_logger = logger;
 		}
 
 		// GET: api/Students
 		[HttpGet]
 		public async Task<ActionResult<IEnumerable<StudentViewModel>>> GetStudents()
 		{
-			IEnumerable<Student> students = await _service.GetAll();
-			IEnumerable<StudentViewModel> studentViewModels = students
-				.Select(student => StudentViewModel.Create(student));
+			try
+			{
+				IEnumerable<Student> students = await _service.GetAll();
+				IEnumerable<StudentViewModel> studentViewModels = students
+					.Select(student => StudentViewModel.Create(student));
 
-			return Ok(studentViewModels);
+				return Ok(studentViewModels);
+			}
+			catch (Exception ex)
+			{
+				string message = $"{Name} - {nameof(GetStudents)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.StudentsControllerGetStudents), ex, message);
+
+				return Ok(Array.Empty<StudentViewModel>());
+			}
 		}
 
 		// GET: api/Students/NoCourses
 		[HttpGet("NoCourses")]
 		public async Task<ActionResult<IEnumerable<StudentViewModel>>> GetStudentsWithNoCourses()
 		{
-			IEnumerable<Student> students = await _service.GetStudentsWithNoCourses();
-			IEnumerable<StudentViewModel> studentViewModels = students
-				.Select(student => StudentViewModel.Create(student));
+			try
+			{
+				IEnumerable<Student> students = await _service.GetStudentsWithNoCourses();
+				IEnumerable<StudentViewModel> studentViewModels = students
+					.Select(student => StudentViewModel.Create(student));
 
-			return Ok(studentViewModels);
+				return Ok(studentViewModels);
+			}
+			catch (Exception ex)
+			{
+				string message = $"{Name} - {nameof(GetStudentsWithNoCourses)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.StudentsControllerGetStudentsWithNoCourses), ex, message);
+
+				return Ok(Array.Empty<StudentViewModel>());
+			}
 		}
 
 		// GET: api/Students/NoCourses
 		[HttpGet("Course/{idCourse}")]
 		public async Task<ActionResult<IEnumerable<StudentViewModel>>> GetStudentsByCourse(int idCourse)
 		{
-			IEnumerable<Student> students = await _service.GetStudentsByCourse(idCourse);
-			IEnumerable<StudentViewModel> studentViewModels = students
-				.Select(student => StudentViewModel.Create(student));
+			try
+			{
+				IEnumerable<Student> students = await _service.GetStudentsByCourse(idCourse);
+				IEnumerable<StudentViewModel> studentViewModels = students
+					.Select(student => StudentViewModel.Create(student));
 
-			return Ok(studentViewModels);
+				return Ok(studentViewModels);
+			}
+			catch (Exception ex)
+			{
+				string message = $"{Name} - {nameof(GetStudentsByCourse)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.StudentsControllerGetStudentsByCourse), ex, message);
+
+				return Ok(Array.Empty<StudentViewModel>());
+			}
 		}
 
 		// GET: api/Students/5
@@ -67,6 +107,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (StudentException ex)
 			{
+				string message = $"{Name} - {nameof(GetStudent)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.StudentsControllerGetStudent), ex, message);
+
 				return NotFound(ex.Message);
 			}
 		}
@@ -90,6 +133,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (StudentException ex)
 			{
+				string message = $"{Name} - {nameof(PutStudent)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.StudentsControllerPutStudent), ex, message);
+
 				return NotFound(ex.Message);
 			}
 		}
@@ -112,6 +158,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (StudentException ex)
 			{
+				string message = $"{Name} - {nameof(PostStudent)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.StudentsControllerPostStudent), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
@@ -132,6 +181,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (StudentException ex)
 			{
+				string message = $"{Name} - {nameof(DeleteStudent)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.StudentsControllerDeleteStudent), ex, message);
+
 				return NotFound(ex.Message);
 			}
 		}

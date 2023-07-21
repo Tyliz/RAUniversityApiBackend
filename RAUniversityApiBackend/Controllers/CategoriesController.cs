@@ -2,9 +2,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RAUniversityApiBackend.Exceptions.Category;
+using RAUniversityApiBackend.Goblal;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
 using RAUniversityApiBackend.ViewModels.Category;
+using Serilog.Parsing;
 
 namespace RAUniversityApiBackend.Controllers
 {
@@ -13,21 +15,42 @@ namespace RAUniversityApiBackend.Controllers
 	public class CategoriesController : ControllerBase
 	{
 		private readonly ICategoriesService _service;
+		private readonly ILogger<CategoriesController> _logger;
+		private string Name
+		{
+			get
+			{
+				return nameof(CategoriesController);
+			}
+		}
 
-		public CategoriesController(ICategoriesService service)
+
+		public CategoriesController(ICategoriesService service, ILogger<CategoriesController> logger)
 		{
 			_service = service;
+			_logger = logger;
 		}
 
 		// GET: api/Categories
 		[HttpGet]
 		public async Task<ActionResult<IEnumerable<CategoryViewModel>>> GetCategories()
 		{
-			IEnumerable<Category> categories = await _service.GetAll();
-			IEnumerable<CategoryViewModel> categoriesResult = categories
-				.Select(category => CategoryViewModel.Create(category)); 
+			IEnumerable<Category> categories = new List<Category>();
+			try
+			{
+				categories = await _service.GetAll();
+				IEnumerable<CategoryViewModel> categoriesResult = categories
+					.Select(category => CategoryViewModel.Create(category)); 
 
-			return Ok(categoriesResult);
+				return Ok(categoriesResult);
+			}
+			catch (Exception ex)
+			{
+				string message = $"{Name} - {nameof(GetCategories)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CategoriesControllerGetCategories), ex, message);
+
+				return Ok(categories);
+			}
 		}
 
 		// GET: api/Categories/5
@@ -46,6 +69,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (CategoryException ex)
 			{
+				string message = $"{Name} - {nameof(GetCategory)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CategoriesControllerGetGetCategory), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
@@ -69,6 +95,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (CategoryException ex)
 			{
+				string message = $"{Name} - {nameof(PutCategory)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CategoriesControllerPutCategory), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
@@ -91,6 +120,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (CategoryException ex)
 			{
+				string message = $"{Name} - {nameof(PostCategory)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CategoriesControllerPostCategory), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
@@ -111,6 +143,9 @@ namespace RAUniversityApiBackend.Controllers
 			}
 			catch (CategoryException ex)
 			{
+				string message = $"{Name} - {nameof(DeleteCategory)} - {ex.Message}";
+				_logger.LogCritical(new EventId((int)EventIds.CategoriesControllerDeleteCategory), ex, message);
+
 				return Problem(ex.Message);
 			}
 		}
