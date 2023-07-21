@@ -39,6 +39,20 @@ namespace RAUniversityApiBackend.Services
 			return students;
 		}
 
+		public IEnumerable<Student> GetAllSync()
+		{
+			IEnumerable<Student> students = new List<Student>();
+
+			if (_context.Students != null)
+			{
+				students = _context.Students
+					.Where(student => !student.IsDeleted)
+					.ToList();
+			}
+
+			return students;
+		}
+
 		public async Task<IEnumerable<Student>> GetStudentsByCourse(int IdCourse)
 		{
 			IEnumerable<Student> students = new List<Student>();
