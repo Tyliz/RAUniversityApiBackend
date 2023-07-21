@@ -6,6 +6,7 @@ using RAUniversityApiBackend.Global;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
 using RAUniversityApiBackend.ViewModels.Student;
+using System.Diagnostics;
 
 namespace RAUniversityApiBackend.Controllers
 {
@@ -31,15 +32,43 @@ namespace RAUniversityApiBackend.Controllers
 
 		// GET: api/Students
 		[HttpGet]
-		public async Task<ActionResult<IEnumerable<StudentViewModel>>> GetStudents()
+		public async Task<IActionResult> GetStudents()
 		{
 			try
 			{
+				Stopwatch sw = Stopwatch.StartNew();
+
+				IEnumerable<Student> studentsSync = _service.GetAllSync();
+				IEnumerable<StudentViewModel> studentViewModelsSync = studentsSync
+					.Select(student => StudentViewModel.Create(student));
+
+
+				sw.Stop();
+				var syncResult = new
+				{
+					students = studentViewModelsSync,
+					time = sw.Elapsed,
+				};
+
+				sw.Restart();
 				IEnumerable<Student> students = await _service.GetAll();
 				IEnumerable<StudentViewModel> studentViewModels = students
 					.Select(student => StudentViewModel.Create(student));
+				
 
-				return Ok(studentViewModels);
+
+				sw.Stop();
+				var asyncResult = new {
+					students = studentViewModels,
+					time = sw.Elapsed,
+				};
+
+				return Ok(new
+				{
+					syncResult, // 1st time: "time": "00:00:02.6016816"; 4th "time": "00:00:00.0782683"
+					asyncResult, // 1st"time": "00:00:00.1430757"; 4th "time": "00:00:00.0162782"
+				});
+
 			}
 			catch (Exception ex)
 			{
