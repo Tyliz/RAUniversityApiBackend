@@ -17,36 +17,318 @@ namespace RAUniversityApiBackend.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "7.0.8")
+                .HasAnnotation("ProductVersion", "7.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.User", b =>
+            modelBuilder.Entity("CategoryCourse", b =>
+                {
+                    b.Property<int>("CategoriesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CoursesId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CategoriesId", "CoursesId");
+
+                    b.HasIndex("CoursesId");
+
+                    b.ToTable("CategoryCourse (Dictionary<string, object>)");
+                });
+
+            modelBuilder.Entity("CourseStudent", b =>
+                {
+                    b.Property<int>("CoursesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StudentsId")
+                        .HasColumnType("int");
+
+                    b.HasKey("CoursesId", "StudentsId");
+
+                    b.HasIndex("StudentsId");
+
+                    b.ToTable("CourseStudent (Dictionary<string, object>)");
+                });
+
+            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.Category", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("CreatedBy")
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdUserCreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdUserDeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdUserUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdUserCreatedBy");
+
+                    b.HasIndex("IdUserDeletedBy");
+
+                    b.HasIndex("IdUserUpdatedBy");
+
+                    b.ToTable("Category");
+                });
+
+            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.Chapter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("DeletedBy")
+                    b.Property<int>("IdCourse")
+                        .HasColumnType("int")
+                        .HasColumnOrder(2);
+
+                    b.Property<int>("IdUserCreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdUserDeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdUserUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Themes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("IdUserCreatedBy");
+
+                    b.HasIndex("IdUserDeletedBy");
+
+                    b.HasIndex("IdUserUpdatedBy");
+
+                    b.ToTable("Chapter");
+                });
+
+            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.Course", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdUserCreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdUserDeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdUserUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Level")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LongDescription")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Email")
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Requirements")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ShortDescription")
+                        .IsRequired()
+                        .HasMaxLength(280)
+                        .HasColumnType("nvarchar(280)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdUserCreatedBy");
+
+                    b.HasIndex("IdUserDeletedBy");
+
+                    b.HasIndex("IdUserUpdatedBy");
+
+                    b.ToTable("Course");
+                });
+
+            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.Role", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(1);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Role");
+                });
+
+            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.Student", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateOfBird")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("IdUserCreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdUserDeletedBy")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdUserUpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Surname")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IdUserCreatedBy");
+
+                    b.HasIndex("IdUserDeletedBy");
+
+                    b.HasIndex("IdUserUpdatedBy");
+
+                    b.ToTable("Student");
+                });
+
+            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnOrder(0);
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(4);
+
+                    b.Property<int>("IdUserCreatedBy")
+                        .HasColumnType("int")
+                        .HasColumnOrder(6);
+
+                    b.Property<int?>("IdUserDeletedBy")
+                        .HasColumnType("int")
+                        .HasColumnOrder(8);
+
+                    b.Property<int?>("IdUserUpdatedBy")
+                        .HasColumnType("int")
+                        .HasColumnOrder(7);
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
@@ -54,32 +336,195 @@ namespace RAUniversityApiBackend.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(2);
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnOrder(5);
 
                     b.Property<string>("Surname")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(100)")
+                        .HasColumnOrder(3);
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("UpdatedBy")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasColumnOrder(1);
 
                     b.HasKey("Id");
 
                     b.ToTable("User");
+                });
+
+            modelBuilder.Entity("RoleUser", b =>
+                {
+                    b.Property<int>("RolesId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsersId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RolesId", "UsersId");
+
+                    b.HasIndex("UsersId");
+
+                    b.ToTable("RoleUser (Dictionary<string, object>)");
+                });
+
+            modelBuilder.Entity("CategoryCourse", b =>
+                {
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.Category", null)
+                        .WithMany()
+                        .HasForeignKey("CategoriesId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CoursesId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("CourseStudent", b =>
+                {
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.Course", null)
+                        .WithMany()
+                        .HasForeignKey("CoursesId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentsId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.Category", b =>
+                {
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserCreatedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserCreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserDeletedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserDeletedBy");
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserUpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserUpdatedBy");
+
+                    b.Navigation("UserCreatedBy");
+
+                    b.Navigation("UserDeletedBy");
+
+                    b.Navigation("UserUpdatedBy");
+                });
+
+            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.Chapter", b =>
+                {
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.Course", "Course")
+                        .WithMany("Chapters")
+                        .HasForeignKey("CourseId");
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserCreatedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserCreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserDeletedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserDeletedBy");
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserUpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserUpdatedBy");
+
+                    b.Navigation("Course");
+
+                    b.Navigation("UserCreatedBy");
+
+                    b.Navigation("UserDeletedBy");
+
+                    b.Navigation("UserUpdatedBy");
+                });
+
+            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.Course", b =>
+                {
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserCreatedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserCreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserDeletedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserDeletedBy");
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserUpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserUpdatedBy");
+
+                    b.Navigation("UserCreatedBy");
+
+                    b.Navigation("UserDeletedBy");
+
+                    b.Navigation("UserUpdatedBy");
+                });
+
+            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.Student", b =>
+                {
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserCreatedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserCreatedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserDeletedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserDeletedBy");
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", "UserUpdatedBy")
+                        .WithMany()
+                        .HasForeignKey("IdUserUpdatedBy");
+
+                    b.Navigation("UserCreatedBy");
+
+                    b.Navigation("UserDeletedBy");
+
+                    b.Navigation("UserUpdatedBy");
+                });
+
+            modelBuilder.Entity("RoleUser", b =>
+                {
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.Role", null)
+                        .WithMany()
+                        .HasForeignKey("RolesId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("RAUniversityApiBackend.Models.DataModels.User", null)
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("RAUniversityApiBackend.Models.DataModels.Course", b =>
+                {
+                    b.Navigation("Chapters");
                 });
 #pragma warning restore 612, 618
         }
