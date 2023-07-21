@@ -2,11 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RAUniversityApiBackend.Exceptions.Category;
-using RAUniversityApiBackend.Goblal;
+using RAUniversityApiBackend.Global;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
 using RAUniversityApiBackend.ViewModels.Category;
-using Serilog.Parsing;
 
 namespace RAUniversityApiBackend.Controllers
 {

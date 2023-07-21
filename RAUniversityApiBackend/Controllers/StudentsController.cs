@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RAUniversityApiBackend.Exceptions.Student;
-using RAUniversityApiBackend.Goblal;
+using RAUniversityApiBackend.Global;
 using RAUniversityApiBackend.Models.DataModels;
 using RAUniversityApiBackend.Services.Interfaces;
 using RAUniversityApiBackend.ViewModels.Student;

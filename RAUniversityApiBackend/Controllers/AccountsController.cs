@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Localization;
 using RAUniversityApiBackend.Exceptions.User;
-using RAUniversityApiBackend.Goblal;
+using RAUniversityApiBackend.Global;
 using RAUniversityApiBackend.Helpers;
 using RAUniversityApiBackend.Models;
 using RAUniversityApiBackend.Models.DataModels;
